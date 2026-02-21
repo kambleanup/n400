@@ -136,17 +136,23 @@ class N400App {
     }
 
     // Generate 4 choice options
+    // Seeded random for deterministic choice generation
+    seededRandom(seed) {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    }
+
     generateChoices(correctAnswer) {
         const currentCat = this.currentQuestion.category;
-        const currentText = this.currentQuestion.text.toLowerCase();
+        const seed = this.currentQuestion.id * 12345; // Use question ID as seed for determinism
 
-        // Priority 1: Get answers from SAME CATEGORY that are similar/related (hardest)
+        // Priority 1: Get answers from SAME CATEGORY
         const sameCategory = allQuestions
             .filter(q => q.category === currentCat && q.id !== this.currentQuestion.id)
             .flatMap(q => q.answers)
             .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim());
 
-        // Priority 2: If not enough, get answers from RELATED categories
+        // Priority 2: If not enough, get from other categories
         let wrongAnswers = sameCategory;
         if (wrongAnswers.length < 3) {
             const relatedAnswers = allQuestions
@@ -156,15 +162,20 @@ class N400App {
             wrongAnswers = [...wrongAnswers, ...relatedAnswers];
         }
 
-        // Remove duplicates and very short/obvious answers
+        // Remove duplicates
         wrongAnswers = [...new Set(wrongAnswers)];
-        wrongAnswers = wrongAnswers.filter(a => a.length > 2); // Filter out single words that are too obvious
+        wrongAnswers = wrongAnswers.filter(a => a.length > 2);
 
-        // Shuffle and pick 3 random wrong answers
-        wrongAnswers.sort(() => Math.random() - 0.5);
+        // Deterministic sort using seeded random
+        wrongAnswers.sort((a, b) => {
+            const randA = this.seededRandom(seed + a.charCodeAt(0));
+            const randB = this.seededRandom(seed + b.charCodeAt(0));
+            return randA - randB;
+        });
+
         const selectedWrongAnswers = wrongAnswers.slice(0, 3);
 
-        // If not enough wrong answers, use remaining answers
+        // Fallback if not enough
         if (selectedWrongAnswers.length < 3) {
             const allAnswers = allQuestions.flatMap(q => q.answers)
                 .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
@@ -173,7 +184,15 @@ class N400App {
         }
 
         const choices = [correctAnswer, ...selectedWrongAnswers];
-        return choices.sort(() => Math.random() - 0.5);
+
+        // Deterministic final shuffle
+        choices.sort((a, b) => {
+            const randA = this.seededRandom(seed + a.charCodeAt(0));
+            const randB = this.seededRandom(seed + b.charCodeAt(0));
+            return randA - randB;
+        });
+
+        return choices;
     }
 
     // Check if answer is correct (with flexible matching)
