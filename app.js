@@ -370,19 +370,19 @@ class N400App {
         const curations = {
             // Q1-5: Documents and foundational concepts
             1: ['the Declaration of Independence', 'the Bill of Rights', 'the Articles of Confederation'],
-            2: ['defines the government', 'protects basic rights', 'establishes the courts'],
+            2: ['lists all federal laws', 'outlines the court system', 'establishes the presidency'],
             3: ['In God We Trust', 'E Pluribus Unum', 'Out of Many, One'],
-            4: ['a change to the Constitution', 'an addition to the Constitution', 'a proposal by Congress'],
-            5: ['the Constitution', 'the Declaration of Independence', 'the Articles of Confederation'],
+            4: ['a law from Congress', 'a presidential executive order', 'a Supreme Court ruling'],
+            5: ['the Constitution', 'the Magna Carta', 'the Mayflower Compact'],
 
             // Q6-12: Rights, freedoms, and concepts
-            6: ['religion', 'assembly', 'petition the government'],
+            6: ['freedom of speech', 'freedom of association', 'right to petition'],
             7: ['26', '28', '30'],
-            8: ['announced our independence', 'declared our independence', 'proclaimed our freedom'],
-            9: ['life', 'liberty', 'pursuit of happiness'],
-            10: ['You can practice any religion', 'Religion is protected by law', 'Government cannot force religion'],
-            11: ['capitalist economy', 'market economy', 'free market economy'],
-            12: ['Everyone must follow the law', 'Leaders must obey the law', 'Government must obey the law'],
+            8: ['proclaimed our freedom', 'established our independence', 'asserted our liberty'],
+            9: ['freedom', 'rights', 'property'],
+            10: ['You must practice a religion', 'Government provides religion', 'Religion is mandatory'],
+            11: ['communist economy', 'socialist economy', 'command economy'],
+            12: ['No one is above the law', 'Some leaders are exempt', 'The President makes the rules'],
 
             // Q13-17: Government branches and structure
             13: ['the Senate', 'the House of Representatives', 'the Supreme Court'],
@@ -423,9 +423,9 @@ class N400App {
             42: ['provide education', 'issue licenses', 'protect citizens'],
             43: ['answers vary'],
             44: ['answers vary'],
-            45: ['Democratic and Independent', 'Republican and Green', 'Democratic and Libertarian'],
-            46: ['Democratic', 'Independent', 'Libertarian'],
-            47: ['Kevin McCarthy', 'Nancy Pelosi', 'Mitch McConnell'],
+            45: ['Green and Libertarian', 'Independent and Socialist', 'Federalist and Whig'],
+            46: ['Green', 'Libertarian', 'Socialist'],
+            47: ['Paul Ryan', 'John Boehner', 'Newt Gingrich'],
 
             // Q48-57: Rights, responsibilities, voting
             48: ['You don\'t have to pay a poll tax', 'Any citizen can vote', 'A male citizen can vote'],
