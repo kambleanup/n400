@@ -365,8 +365,11 @@ class N400App {
 
     // COMPREHENSIVE TYPE-MATCHED CURATIONS for all 105 questions
     // RULE: Wrong answers must be same TYPE as correct answer
-    // Names with names, dates with dates, places with places, etc.
+    // CRITICAL: Filter out any answer that is also acceptable for this question
     getCuratedWrongAnswersForQuestion(questionId, correctAnswer) {
+        const question = allQuestions.find(q => q.id === questionId);
+        const acceptableAnswers = question ? question.answers.map(a => a.toLowerCase().trim()) : [];
+
         const curations = {
             // Q1-5: Documents and foundational concepts
             1: ['the Declaration of Independence', 'the Bill of Rights', 'the Articles of Confederation'],
@@ -498,7 +501,18 @@ class N400App {
             105: ['Brazos River', 'Colorado River', 'Trinity River'],
         };
 
-        return curations[questionId] || null;
+        let result = curations[questionId] || null;
+
+        // CRITICAL FIX: Filter out any curated answer that's also an acceptable answer
+        // This prevents duplicates in multiple choice
+        if (result && Array.isArray(result)) {
+            result = result.filter(curatedAnswer => {
+                const curatedLower = curatedAnswer.toLowerCase().trim();
+                return !acceptableAnswers.includes(curatedLower);
+            });
+        }
+
+        return result || null;
     }
 
     // Legacy method for compatibility (now disabled)
