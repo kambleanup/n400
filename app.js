@@ -405,15 +405,17 @@ class N400App {
             `;
         } else {
             // Use stored choices (don't regenerate - keeps them stable)
-            const choices = this.currentChoices;
+            const choices = this.currentChoices || [];
             answerHTML = `
                 <div class="choices-container active">
-                    ${choices.map(choice => `
-                        <button class="choice-button ${this.selectedChoice === choice ? 'selected' : ''}"
+                    ${choices.map(choice => {
+                        const isSelected = this.selectedChoice &&
+                                         this.selectedChoice.toLowerCase().trim() === choice.toLowerCase().trim();
+                        return `<button class="choice-button ${isSelected ? 'selected' : ''}"
                                 onclick="app.selectChoice('${choice.replace(/'/g, "\\'")}')">
                             ${choice}
-                        </button>
-                    `).join('')}
+                        </button>`;
+                    }).join('')}
                 </div>
                 ${this.selectedChoice ? `
                     <button class="submit-button" style="margin-top: 16px;" onclick="app.submitSelectedChoice()">
@@ -644,16 +646,13 @@ class N400App {
 
     // Action: Toggle Choices View
     toggleChoices() {
-        this.showingChoices = !this.showingChoices;
-        if (this.showingChoices) {
-            this.selectedChoice = null; // Reset selection BEFORE rendering choices
-            // Generate choices only ONCE when first showing them
-            if (!this.choicesGenerated) {
-                this.currentChoices = this.generateChoices(this.currentQuestion.answers[0]);
-                this.choicesGenerated = true;
-                console.log('Generated choices:', this.currentChoices);
-            }
+        if (!this.showingChoices) {
+            // FIRST TIME: generate choices
+            this.selectedChoice = null;
+            this.currentChoices = this.generateChoices(this.currentQuestion.answers[0]);
+            this.choicesGenerated = true;
         }
+        this.showingChoices = !this.showingChoices;
         this.render();
         if (this.showingChoices) {
             setTimeout(() => {
