@@ -307,7 +307,7 @@ class N400App {
         return typeGroups[answerType] || [answerType];
     }
 
-    // Curated fallback wrong answers for specific questions that need help
+    // Curated fallback wrong answers for specific questions (using OFFICIAL USCIS question IDs 1-100)
     getCuratedWrongAnswers(questionId, correctAnswer) {
         const curated = {
             // Government Officials - Present/Current
@@ -414,8 +414,8 @@ class N400App {
             80: ['New Year\'s Day', 'Independence Day', 'Christmas'], // National holidays
 
             // Government roles/purposes
-            89: ['protect people', 'make laws', 'enforce laws'], // State government purpose
-            90: ['protect people', 'make local laws', 'enforce local laws'], // Local government purpose
+            42: ['protect people', 'make laws', 'enforce laws'], // State government purpose
+            41: ['protect people', 'make federal laws', 'enforce laws'], // Federal government purpose
         };
 
         return curated[questionId] || null;
