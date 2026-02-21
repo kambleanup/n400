@@ -308,6 +308,8 @@ input:focus, textarea:focus {
 
 .choice-button:focus {
     outline: none;
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .choice-button:focus-visible {
@@ -322,10 +324,17 @@ input:focus, textarea:focus {
     border-color: var(--primary-color);
 }
 
-/* Prevent iOS auto-selection styling on first button */
-.choice-button:first-child:not(.selected) {
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
+/* Prevent iOS auto-selection styling - all buttons start unselected */
+.choice-button {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.choice-button:not(.selected) {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
 }
 
 /* Voice Input Styles */

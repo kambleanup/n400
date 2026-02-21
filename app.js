@@ -1009,12 +1009,22 @@ class N400App {
             this.choicesGenerated = true;
         }
         this.showingChoices = !this.showingChoices;
+
+        // CRITICAL: Always clear selectedChoice when showing choices to prevent pre-selection
+        if (this.showingChoices) {
+            this.selectedChoice = null;
+        }
+
         this.render();
 
         // Attach event listeners AFTER render completes
         if (this.showingChoices) {
             setTimeout(() => {
                 this.attachChoiceListeners();
+                // Remove any 'selected' class that may have been applied
+                document.querySelectorAll('.choice-button.selected').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
                 // Don't auto-focus first button - prevents iOS showing default selection
             }, 50);
         }
