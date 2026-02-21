@@ -738,11 +738,11 @@ class N400App {
             const choices = this.currentChoices || [];
             answerHTML = `
                 <div class="choices-container active">
-                    ${choices.map(choice => {
+                    ${choices.map((choice, index) => {
                         const isSelected = this.selectedChoice &&
                                          this.selectedChoice.toLowerCase().trim() === choice.toLowerCase().trim();
                         return `<button class="choice-button ${isSelected ? 'selected' : ''}"
-                                onclick="app.selectChoice('${this.escapeHtml(choice)}')"
+                                data-choice-index="${index}"
                                 type="button">
                             ${this.escapeHtml(choice)}
                         </button>`;
@@ -752,6 +752,11 @@ class N400App {
                     Submit Answer
                 </button>
             `;
+
+            // Attach choice listeners after rendering
+            setTimeout(() => {
+                this.attachChoiceListeners();
+            }, 10);
         }
 
         return `
@@ -1005,8 +1010,9 @@ class N400App {
     attachChoiceListeners() {
         document.querySelectorAll('.choice-button').forEach(button => {
             button.addEventListener('click', (e) => {
-                const choice = button.dataset.choice;
-                if (choice) {
+                const index = parseInt(button.dataset.choiceIndex, 10);
+                if (this.currentChoices && this.currentChoices[index]) {
+                    const choice = this.currentChoices[index];
                     this.selectChoice(choice);
                 }
             });
