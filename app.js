@@ -136,30 +136,41 @@ class N400App {
     // Generate 4 choice options
     generateChoices(correctAnswer) {
         const currentCat = this.currentQuestion.category;
+        const currentText = this.currentQuestion.text.toLowerCase();
 
-        // Get all answers and filter out the correct one
-        const allAnswers = allQuestions.flatMap(q => q.answers);
-        let wrongAnswers = allAnswers.filter(a =>
-            a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim()
-        );
-
-        // Prioritize wrong answers from same category (more challenging)
+        // Priority 1: Get answers from SAME CATEGORY that are similar/related (hardest)
         const sameCategory = allQuestions
             .filter(q => q.category === currentCat && q.id !== this.currentQuestion.id)
             .flatMap(q => q.answers)
             .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim());
 
-        if (sameCategory.length > 0) {
-            wrongAnswers = sameCategory;
+        // Priority 2: If not enough, get answers from RELATED categories
+        let wrongAnswers = sameCategory;
+        if (wrongAnswers.length < 3) {
+            const relatedAnswers = allQuestions
+                .filter(q => q.category !== currentCat)
+                .flatMap(q => q.answers)
+                .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim());
+            wrongAnswers = [...wrongAnswers, ...relatedAnswers];
         }
 
-        // Remove duplicates
+        // Remove duplicates and very short/obvious answers
         wrongAnswers = [...new Set(wrongAnswers)];
+        wrongAnswers = wrongAnswers.filter(a => a.length > 2); // Filter out single words that are too obvious
 
         // Shuffle and pick 3 random wrong answers
-        const shuffled = wrongAnswers.sort(() => Math.random() - 0.5);
-        const choices = [correctAnswer, ...shuffled.slice(0, 3)];
+        wrongAnswers.sort(() => Math.random() - 0.5);
+        const selectedWrongAnswers = wrongAnswers.slice(0, 3);
 
+        // If not enough wrong answers, use remaining answers
+        if (selectedWrongAnswers.length < 3) {
+            const allAnswers = allQuestions.flatMap(q => q.answers)
+                .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
+                .filter(a => !selectedWrongAnswers.includes(a));
+            selectedWrongAnswers.push(...allAnswers.slice(0, 3 - selectedWrongAnswers.length));
+        }
+
+        const choices = [correctAnswer, ...selectedWrongAnswers];
         return choices.sort(() => Math.random() - 0.5);
     }
 
@@ -631,7 +642,9 @@ class N400App {
     // Action: Toggle Choices View
     toggleChoices() {
         this.showingChoices = !this.showingChoices;
-        this.selectedChoice = null; // Reset selection when showing choices
+        if (this.showingChoices) {
+            this.selectedChoice = null; // Reset selection BEFORE rendering choices
+        }
         this.render();
         if (this.showingChoices) {
             setTimeout(() => {

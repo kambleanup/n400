@@ -85,7 +85,7 @@ const allQuestions = [
     { id: 82, text: "When must you register to vote?", answers: ["differs by state", "before election day"], category: "Civics" },
     { id: 83, text: "What are the two major political parties in the United States?", answers: ["Democratic", "Republican"], category: "Civics" },
     { id: 84, text: "What is the political party of the President now?", answers: ["Republican"], category: "Civics" },
-    { id: 85, text: "What is the name of the Speaker of the House of Representatives?", answers: ["answers vary"], category: "American Government" },
+    { id: 85, text: "What is the name of the Speaker of the House of Representatives?", answers: ["Mike Johnson", "Johnson"], category: "American Government" },
     { id: 86, text: "There are four amendments to the Constitution about who can vote. Describe one of them.", answers: ["citizens 18 or older can vote", "you don't have to pay to vote", "any citizen can vote"], category: "Rights and Responsibilities" },
     { id: 87, text: "What is one reason why the government limits the power of the President?", answers: ["to protect democracy", "checks and balances", "separation of powers"], category: "American Government" },
     { id: 88, text: "What is the purpose of the United Nations?", answers: ["for countries to discuss and try to resolve world problems"], category: "Civics" },
