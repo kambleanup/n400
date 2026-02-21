@@ -10,6 +10,7 @@ class N400App {
         this.selectedChoice = null;
         this.isListening = false;
         this.recognizedText = '';
+        this.currentChoices = []; // Store choices so they don't regenerate
         this.speechRecognition = this.initSpeechRecognition();
 
         this.initializeProgress();
@@ -402,7 +403,8 @@ class N400App {
                 ${recognizedHTML}
             `;
         } else {
-            const choices = this.generateChoices(this.currentQuestion.answers[0]);
+            // Use stored choices (don't regenerate - keeps them stable)
+            const choices = this.currentChoices;
             answerHTML = `
                 <div class="choices-container active">
                     ${choices.map(choice => `
@@ -644,6 +646,10 @@ class N400App {
         this.showingChoices = !this.showingChoices;
         if (this.showingChoices) {
             this.selectedChoice = null; // Reset selection BEFORE rendering choices
+            // Generate choices only once (don't regenerate on each render)
+            if (this.currentChoices.length === 0) {
+                this.currentChoices = this.generateChoices(this.currentQuestion.answers[0]);
+            }
         }
         this.render();
         if (this.showingChoices) {
@@ -741,6 +747,7 @@ class N400App {
         this.currentQuestion = this.getNextQuestion();
         this.showingChoices = false;
         this.selectedChoice = null;
+        this.currentChoices = []; // Reset choices for new question
         window.speechSynthesis.cancel();
         this.isSpeaking = false;
 
