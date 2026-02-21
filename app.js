@@ -542,6 +542,126 @@ class N400App {
 
             // USCIS Q100: Two national holidays
             100: ['Groundhog Day', 'Halloween', 'Valentine\'s Day'],
+
+            // ===== COMPREHENSIVE CURATED ANSWERS FOR ALL 100 USCIS QUESTIONS =====
+
+            // Q1-Q12: Principles of American Democracy
+            1: ['Bill of Rights', 'Declaration of Independence', 'Articles of Confederation'],
+            3: ['In God We Trust', 'E Pluribus Unum', 'One Nation Under God'],
+            5: ['the Constitution', 'the Declaration', 'the Amendments'],
+            6: ['voting rights', 'property rights', 'employment rights'],
+            9: ['equality', 'freedom', 'property rights'],
+            10: ['You must practice a religion', 'Only one religion allowed', 'Government chooses religion'],
+            11: ['socialist economy', 'communist economy', 'government economy'],
+            12: ['Some people are above law', 'Leaders make their own rules', 'Government can ignore rules'],
+
+            // Q13-Q25: Branches of Government
+            13: ['the Cabinet', 'the Supreme Court', 'the Senate'],
+            14: ['the Supreme Court', 'Congress only', 'state governments'],
+            15: ['Congress', 'the Senate', 'the Supreme Court'],
+            16: ['the President', 'the Supreme Court', 'the States'],
+            17: ['President and Cabinet', 'President and Courts', 'Executive and Judicial'],
+            18: ['50', '435', '27'],
+            19: ['2', '4', '8'],
+            21: ['100', '50', '300'],
+            22: ['4', '6', '8'],
+            24: ['individual states', 'the Congress', 'local governments'],
+            25: ['their electoral votes', 'historic importance', 'geographic size'],
+            26: ['2', '6', '8'],
+            27: ['September', 'October', 'December'],
+
+            // Q28-Q40: Executive and Judicial Branches
+            28: ['Joe Biden', 'Barack Obama', 'George W. Bush'],
+            29: ['Kamala Harris', 'Mike Pence', 'Joe Biden'],
+            30: ['the Speaker of House', 'new elections held', 'Congress votes'],
+            31: ['a new election', 'the Attorney General', 'the Chief Justice'],
+            32: ['the Secretary of Defense', 'Congress', 'the Joint Chiefs'],
+            33: ['Congress', 'the Senate', 'the Speaker of House'],
+            34: ['Congress', 'the Senate', 'the Supreme Court'],
+            35: ['enforces the laws', 'makes federal laws', 'commands military'],
+            36: ['Ambassador to UN', 'Federal Reserve Chair', 'US Trade Representative'],
+            37: ['makes federal laws', 'enforces the laws', 'creates amendments'],
+            38: ['the Court of Appeals', 'the Federal Court', 'the State Supreme Court'],
+            39: ['7', '8', '11'],
+            40: ['Samuel Alito', 'Clarence Thomas', 'Elena Kagan'],
+
+            // Q41-Q47: Federal and State Powers
+            41: ['provide education', 'issue licenses', 'regulate state commerce'],
+            42: ['declare war', 'print money', 'make treaties'],
+            43: ['answers vary - provide alternative for testing'],
+            44: ['answers vary - provide alternative for testing'],
+            45: ['Democratic and Green Party', 'Republican and Libertarian', 'Independent and Socialist'],
+            46: ['Democratic', 'Independent', 'Libertarian'],
+            47: ['Kevin McCarthy', 'Nancy Pelosi', 'Mitch McConnell'],
+
+            // Q48-Q57: Rights and Responsibilities
+            48: ['only wealthy can vote', 'only men can vote', 'must own property'],
+            49: ['run for public office', 'pay taxes', 'serve military'],
+            50: ['freedom of speech', 'freedom of religion', 'right to bear arms'],
+            51: ['vote in federal elections', 'run for office', 'serve on jury'],
+            52: ['the President', 'the Constitution', 'Congress'],
+            53: ['pay taxes only', 'serve in military', 'become a senator'],
+            54: ['16', '17', '21'],
+            55: ['protest government', 'travel abroad', 'serve military'],
+            56: ['March 15', 'May 15', 'June 15'],
+            57: ['14-20', '16-25', '18-30'],
+
+            // Q58-Q70: Colonial Period and Early History
+            58: ['economic competition', 'to escape war', 'to trade'],
+            59: ['Europeans', 'Africans', 'Asian explorers'],
+            60: ['Europeans', 'Native Americans', 'Asians'],
+            61: ['independence from Spain', 'more territory', 'trade rights'],
+            62: ['Benjamin Franklin', 'George Washington', 'John Adams'],
+            63: ['July 4, 1775', 'July 4, 1787', 'December 25, 1776'],
+            64: ['Virginia, Pennsylvania, Massachusetts', 'New York, Maryland, Carolina', 'Connecticut, Delaware, Georgia'],
+            65: ['declared independence', 'created Bill of Rights', 'fought the British'],
+            66: ['1776', '1781', '1789'],
+            67: ['George Washington', 'Benjamin Franklin', 'Thomas Jefferson'],
+            68: ['invented printing press', 'was first President', 'wrote Constitution'],
+            69: ['Benjamin Franklin', 'Thomas Jefferson', 'James Madison'],
+            70: ['Thomas Jefferson', 'John Adams', 'Benjamin Franklin'],
+
+            // Q71-Q77: 1800s History
+            71: ['Florida Territory', 'Oregon Territory', 'Texas Territory'],
+            72: ['World War I', 'World War II', 'Vietnam War'],
+            73: ['Revolutionary War', 'War of 1812', 'Spanish-American War'],
+            74: ['westward expansion', 'trade disputes', 'economic competition'],
+            75: ['led Revolutionary War', 'first President', 'founded Republican Party'],
+            76: ['ended segregation', 'women\'s voting rights', 'granted statehood'],
+            77: ['led Civil War', 'was President', 'wrote Constitution'],
+
+            // Q78-Q87: 20th Century History
+            78: ['Civil War', 'War of 1812', 'Mexican-American War'],
+            79: ['Theodore Roosevelt', 'Franklin Roosevelt', 'Harry Truman'],
+            80: ['Herbert Hoover', 'Harry Truman', 'Dwight Eisenhower'],
+            81: ['France, Britain, Russia', 'Germany and Italy only', 'Japan only'],
+            82: ['World War I', 'Korean War', 'Vietnam War'],
+            83: ['Socialism', 'Democracy spreading', 'Economic growth'],
+            84: ['Women\'s Suffrage', 'Labor Movement', 'Environmental Movement'],
+            85: ['led Labor movement', 'founded NAACP', 'was a senator'],
+            86: ['Pearl Harbor attack', 'Kennedy assassination', 'Moon landing'],
+            87: ['Comanche', 'Kiowa', 'Apache'],
+
+            // Q88-Q100: Geography and Symbols
+            88: ['Colorado River', 'Rio Grande', 'Brazos River'],
+            89: ['Atlantic Ocean', 'Arctic Ocean', 'Indian Ocean'],
+            90: ['Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'],
+            91: ['Mexico', 'Canada', 'Bahamas'],
+            92: ['Texas', 'Florida', 'California'],
+            93: ['Florida', 'Colorado', 'Utah'],
+            94: ['New York', 'Boston', 'Philadelphia'],
+            95: ['Boston Harbor', 'San Francisco Bay', 'Chesapeake Bay'],
+            96: ['13 presidents', '13 signers', 'founding year'],
+            97: ['50 presidents', '50 territories', '50 major cities'],
+            98: ['America the Beautiful', 'Yankee Doodle', 'Battle Hymn'],
+            99: ['June 4', 'August 4', 'May 4'],
+
+            // Q101-Q105: Texas-Specific
+            101: ['Greg Abbott', 'Beto O\'Rourke', 'Ron Paul'],
+            102: ['Lloyd Doggett', 'Marc Veasey', 'Ronnie Jackson'],
+            103: ['Dallas', 'Houston', 'San Antonio'],
+            104: ['1821', '1876', '1901'],
+            105: ['Colorado River', 'Brazos River', 'Colorado River'],
         };
 
         return curated[questionId] || null;
