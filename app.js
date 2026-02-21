@@ -451,8 +451,8 @@ class N400App {
             66: ['1776', '1789', '1791'],
             67: ['Alexander Hamilton', 'James Madison', 'George Washington'],
             68: ['diplomat', 'inventor', 'Founding Father'],
-            69: ['Benjamin Franklin', 'George Washington', 'Thomas Jefferson'],
-            70: ['Thomas Jefferson', 'John Adams', 'Benjamin Franklin'],
+            69: ['Benjamin Franklin', 'Thomas Jefferson', 'John Adams'],
+            70: ['George Washington', 'James Madison', 'Benjamin Franklin'],
 
             // Q71-82: Wars and conflicts
             71: ['Florida Territory', 'Oregon Territory', 'Alaska Territory'],
