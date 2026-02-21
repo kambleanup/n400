@@ -1048,44 +1048,18 @@ class N400App {
         // If clicking the same choice again, unselect it
         if (this.selectedChoice && this.selectedChoice.toLowerCase().trim() === answer.toLowerCase().trim()) {
             this.selectedChoice = null;
-            this.updateChoiceSelection(null);
+            this.render(); // Full re-render to show/hide submit button and update styles
+            setTimeout(() => {
+                this.attachChoiceListeners();
+            }, 50);
             return;
         }
 
         this.selectedChoice = answer;
-        // Only update the UI for selected state, don't re-render everything
-        this.updateChoiceSelection(answer);
-    }
-
-    // Update choice selection UI without full re-render
-    updateChoiceSelection(selectedAnswer) {
-        document.querySelectorAll('.choice-button').forEach(button => {
-            const choice = button.dataset.choice;
-            if (selectedAnswer && choice && choice.toLowerCase().trim() === selectedAnswer.toLowerCase().trim()) {
-                button.classList.add('selected');
-            } else {
-                button.classList.remove('selected');
-            }
-        });
-
-        // Show/hide submit button based on selection
-        let submitBtn = document.querySelector('.submit-button');
-        const container = document.querySelector('.choices-container');
-
-        if (selectedAnswer && container) {
-            // Show submit button if something is selected
-            if (!submitBtn) {
-                const newBtn = document.createElement('button');
-                newBtn.className = 'submit-button';
-                newBtn.style.marginTop = '16px';
-                newBtn.textContent = 'Submit Answer';
-                newBtn.onclick = () => this.submitSelectedChoice();
-                container.parentNode.insertBefore(newBtn, container.nextSibling);
-            }
-        } else if (!selectedAnswer && submitBtn) {
-            // Hide/remove submit button if nothing is selected
-            submitBtn.remove();
-        }
+        this.render(); // Full re-render to show/hide submit button and update styles
+        setTimeout(() => {
+            this.attachChoiceListeners();
+        }, 50);
     }
 
     // Action: Submit Selected Choice
