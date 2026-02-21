@@ -1015,7 +1015,7 @@ class N400App {
         if (this.showingChoices) {
             setTimeout(() => {
                 this.attachChoiceListeners();
-                document.querySelector('.choice-button')?.focus();
+                // Don't auto-focus first button - prevents iOS showing default selection
             }, 50);
         }
     }
