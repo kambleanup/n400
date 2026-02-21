@@ -198,16 +198,33 @@ class N400App {
     }
 
     generateChoices(correctAnswer) {
+        const questionId = this.currentQuestion.id;
         const currentCat = this.currentQuestion.category;
-        const seed = this.currentQuestion.id * 12345;
+        const seed = questionId * 12345;
         const correctType = this.classifyAnswerType(correctAnswer);
 
-        // Priority tiers for wrong answers
+        // Check if we have curated wrong answers for this specific question
+        const curatedWrongs = this.getCuratedWrongAnswers(questionId, correctAnswer);
+        if (curatedWrongs && curatedWrongs.length >= 3) {
+            const selectedWrongAnswers = curatedWrongs.slice(0, 3);
+
+            // Deterministic shuffle
+            const choices = [correctAnswer, ...selectedWrongAnswers];
+            choices.sort((a, b) => {
+                const randA = this.seededRandom(seed + a.charCodeAt(0));
+                const randB = this.seededRandom(seed + b.charCodeAt(0));
+                return randA - randB;
+            });
+
+            return choices;
+        }
+
+        // Otherwise, use smart multi-tier selection
         let wrongAnswers = [];
 
         // Tier 1: Exact type match from same category
         const tier1 = allQuestions
-            .filter(q => q.category === currentCat && q.id !== this.currentQuestion.id)
+            .filter(q => q.category === currentCat && q.id !== questionId)
             .flatMap(q => q.answers)
             .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
             .filter(a => this.classifyAnswerType(a) === correctType);
@@ -218,7 +235,7 @@ class N400App {
             // Tier 2: Related types from same category (e.g., city + state both geography)
             const relatedTypes = this.getRelatedTypes(correctType);
             const tier2 = allQuestions
-                .filter(q => q.category === currentCat && q.id !== this.currentQuestion.id)
+                .filter(q => q.category === currentCat && q.id !== questionId)
                 .flatMap(q => q.answers)
                 .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
                 .filter(a => relatedTypes.includes(this.classifyAnswerType(a)));
@@ -288,6 +305,63 @@ class N400App {
         };
 
         return typeGroups[answerType] || [answerType];
+    }
+
+    // Curated fallback wrong answers for specific questions that need help
+    getCuratedWrongAnswers(questionId, correctAnswer) {
+        const curated = {
+            // Government Officials - Present/Current
+            15: ['Joe Biden', 'Barack Obama', 'George W. Bush'],  // Who is President
+            16: ['Kamala Harris', 'Mike Pence', 'Joe Biden'],      // Who is VP
+            21: ['Samuel Alito', 'Clarence Thomas', 'Elena Kagan'], // Chief Justice
+            85: ['Kevin McCarthy', 'Nancy Pelosi', 'Mitch McConnell'], // Speaker of House
+            101: ['John Cornyn', 'Beto O\'Rourke', 'Greg Abbott'],  // Texas Senators
+            102: ['Lloyd Doggett', 'Marc Veasey', 'Ronnie Jackson'], // Texas House Rep
+
+            // Capitals/Geography
+            74: ['Dallas', 'Houston', 'San Antonio'],  // Capital of Texas (Austin)
+            75: ['New York', 'Boston', 'Philadelphia'], // Capital of US (Washington DC)
+            103: ['Dallas', 'Houston', 'San Antonio'], // Capital of Texas again
+
+            // Rivers
+            73: ['Rio Grande', 'Colorado River', 'Brazos River'], // Longest rivers
+            105: ['Colorado River', 'Missouri River', 'Brazos River'], // Texas border
+
+            // Numbers/Counts
+            7: ['2', '4', '5'],        // Branches (3)
+            12: ['50', '435', '27'],   // Senators (100)
+            20: ['8', '11', '13'],     // Supreme Court justices (9)
+            63: ['1', '3', '4'],       // Senators per state (2)
+            66: ['300', '540', '600'], // House Representatives (435)
+
+            // Years/Dates
+            23: ['12', '33', '15'],    // Amendments (27)
+            24: ['2 years', '6 years', '8 years'], // President term (4 years)
+            25: ['September', 'October', 'December'], // Election month (November)
+            44: ['July 4, 1787', 'September 17, 1787', 'December 25, 1776'], // Declaration (July 4, 1776)
+            47: ['1776', '1789', '1791'], // Constitution written (1787)
+            51: ['Thomas Jefferson', 'Benjamin Franklin', 'Alexander Hamilton'], // First President (George Washington)
+            59: ['Andrew Jackson', 'Theodore Roosevelt', 'Benjamin Harrison'], // President on $5 bill (Abraham Lincoln)
+            104: ['1821', '1865', '1900'], // Texas statehood (1845)
+
+            // Ages/Durations
+            36: ['16', '17', '21'],     // Voting age (18)
+            38: ['14-20', '16-25', '18-30'], // Selective Service (18-26)
+            64: ['2 years', '4 years', '8 years'], // Senator term (6 years)
+            67: ['4 years', '6 years', '8 years'], // House rep term (2 years)
+
+            // Historical figures
+            50: ['Benjamin Franklin', 'John Adams', 'James Madison'], // Father of Country (George Washington)
+            55: ['Elizabeth Cady Stanton', 'Sojourner Truth', 'Harriet Tubman'], // Susan B. Anthony alternatives
+            58: ['$1 bill', '$10 bill', '$20 bill'], // President on $1 (George Washington)
+            60: ['Alexander Hamilton', 'Thomas Jefferson', 'Benjamin Franklin'], // $10 bill (Alexander Hamilton)
+
+            // Concepts/Definitions
+            81: ['March 15', 'April 1', 'May 1'],    // Tax filing deadline (April 15)
+            88: ['NATO', 'World Bank', 'Red Cross'], // Purpose of UN (discuss world problems)
+        };
+
+        return curated[questionId] || null;
     }
 
     // Check if answer is correct (with flexible matching)
