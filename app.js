@@ -8,10 +8,57 @@ class N400App {
         this.isSpeaking = false;
         this.showingChoices = false;
         this.selectedChoice = null;
+        this.isListening = false;
+        this.recognizedText = '';
+        this.speechRecognition = this.initSpeechRecognition();
 
         this.initializeProgress();
         this.setupEventListeners();
         this.render();
+    }
+
+    // Initialize Web Speech API with Indian English support
+    initSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return null;
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-IN'; // Indian English locale
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            this.isListening = true;
+            this.recognizedText = '';
+            this.render();
+        };
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    this.recognizedText = transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            this.render();
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event.error);
+            this.isListening = false;
+            this.render();
+        };
+
+        recognition.onend = () => {
+            this.isListening = false;
+            this.render();
+        };
+
+        return recognition;
     }
 
     // Initialize progress from localStorage
@@ -82,7 +129,7 @@ class N400App {
         });
     }
 
-    // Normalize answer for flexible matching
+    // Normalize answer for flexible matching (including Indian English phonetics)
     normalizeAnswer(text) {
         if (!text) return '';
 
@@ -91,6 +138,20 @@ class N400App {
         // Remove extra punctuation and spaces
         text = text.replace(/[.,;:-]/g, ' ');
         text = text.replace(/\s+/g, ' ').trim();
+
+        // Handle Indian English phonetic variations
+        const indianEnglishVariations = {
+            'd': 'th', // "this" might sound like "dis"
+            'f': 'v',  // "very" might sound like "fery"
+            'z': 's',  // "constitution" variations
+            'ain': 'ine', // "main" vs "mine"
+            'our': 'or', // "four" vs "for"
+            'ay': 'ei', // "way" vs "wei"
+        };
+
+        Object.entries(indianEnglishVariations).forEach(([variant, standard]) => {
+            text = text.replace(new RegExp(variant, 'g'), standard);
+        });
 
         // Replace common abbreviations with full words
         const abbreviations = {
@@ -253,18 +314,38 @@ class N400App {
 
         let answerHTML = '';
         if (!this.showingChoices) {
+            const microphoneButtonHTML = this.speechRecognition ? `
+                <button class="mic-button ${this.isListening ? 'listening' : ''}"
+                        onclick="app.toggleVoiceInput()"
+                        title="Click and speak your answer">
+                    ${this.isListening ? '🎤 Listening...' : '🎤 Speak Answer'}
+                </button>
+            ` : '';
+
+            const recognizedHTML = this.recognizedText ? `
+                <div class="recognized-text">
+                    <strong>I heard:</strong> "${this.recognizedText}"
+                    <button class="confirm-button" onclick="app.confirmVoiceAnswer()">✓ Correct</button>
+                    <button class="retake-button" onclick="app.retakeVoiceAnswer()">↻ Re-record</button>
+                </div>
+            ` : '';
+
             answerHTML = `
                 <div class="input-group">
                     <input type="text" class="answer-input" id="answerInput"
                            placeholder="Type your answer..."
                            onkeypress="if(event.key==='Enter') app.submitAnswer()">
-                    <button class="submit-button" onclick="app.submitAnswer()">
-                        Submit Answer
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="submit-button" style="flex: 1;" onclick="app.submitAnswer()">
+                            Submit Answer
+                        </button>
+                        ${microphoneButtonHTML}
+                    </div>
                     <button class="choices-toggle" onclick="app.toggleChoices()">
                         Show me 4 choices
                     </button>
                 </div>
+                ${recognizedHTML}
             `;
         } else {
             const choices = this.generateChoices(this.currentQuestion.answers[0]);
@@ -512,6 +593,42 @@ class N400App {
                 document.querySelector('.choice-button')?.focus();
             }, 100);
         }
+    }
+
+    // Action: Toggle Voice Input
+    toggleVoiceInput() {
+        if (!this.speechRecognition) {
+            alert('Voice input not supported in your browser. Please use Chrome, Firefox, Safari, or Edge.');
+            return;
+        }
+
+        if (this.isListening) {
+            this.speechRecognition.stop();
+            this.isListening = false;
+        } else {
+            this.recognizedText = '';
+            this.speechRecognition.start();
+        }
+        this.render();
+    }
+
+    // Action: Confirm Voice Answer
+    confirmVoiceAnswer() {
+        if (this.recognizedText) {
+            document.getElementById('answerInput').value = this.recognizedText;
+            this.recognizedText = '';
+            this.submitAnswer();
+        }
+    }
+
+    // Action: Retake Voice Answer
+    retakeVoiceAnswer() {
+        this.recognizedText = '';
+        this.isListening = false;
+        this.render();
+        setTimeout(() => {
+            this.toggleVoiceInput();
+        }, 200);
     }
 
     // Action: Select Choice (mark as selected, don't submit yet)
