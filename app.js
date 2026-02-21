@@ -394,10 +394,10 @@ class N400App {
             // Q18-27: Numbers, times, and counts
             18: ['99', '101', '98'],
             19: ['four', 'eight', 'two'],
-            20: ['answers vary'],
+            20: ['Ted Cruz', 'Dianne Feinstein', 'Chuck Schumer'], // Texas senator + other state senators
             21: ['434', '436', '400'],
             22: ['four', 'six', 'four'],
-            23: ['answers vary'],
+            23: ['John Carter', 'Alexandria Ocasio-Cortez', 'Adam Schiff'], // Texas rep + other state reps
             24: ['all voters in their state', 'all people of their district', 'all registered voters'],
             25: ['state history', 'geographic size', 'economic importance'],
             26: ['six', 'eight', 'two'],
@@ -421,8 +421,8 @@ class N400App {
             // Q41-47: Powers and political parties
             41: ['to create an army', 'to make treaties', 'to declare war'],
             42: ['provide education', 'issue licenses', 'protect citizens'],
-            43: ['answers vary'],
-            44: ['answers vary'],
+            43: ['Greg Abbott', 'Ron DeSantis', 'Gavin Newsom'], // Texas governor + other state governors
+            44: ['Austin', 'Denver', 'Sacramento'], // Texas capital + other state capitals
             45: ['Green and Libertarian', 'Independent and Socialist', 'Federalist and Whig'],
             46: ['Green', 'Libertarian', 'Socialist'],
             47: ['Paul Ryan', 'John Boehner', 'Newt Gingrich'],
