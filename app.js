@@ -135,7 +135,7 @@ class N400App {
         return allQuestions[0];
     }
 
-    // Classify answer type for better choice selection
+    // Classify answer type for better choice selection (more granular)
     classifyAnswerType(answer) {
         const a = answer.toLowerCase().trim();
 
@@ -144,25 +144,47 @@ class N400App {
             return 'number';
         }
 
-        // Names (typically 1-3 words, all capitalized, contain only letters/spaces)
-        if (/^[A-Z][a-z]+(\s[A-Z][a-z]+)?(\s[A-Z][a-z.]+)?$/.test(answer)) {
-            return 'name';
+        // Time durations (years, terms, etc)
+        if (/\b(year|years|month|months|week|weeks|day|days|hour|hours|minute|minutes|term|terms)\b/i.test(a)) {
+            return 'duration';
         }
 
-        // Places (state/river/capital names, or contains place keywords)
-        if (/\b(river|mountain|ocean|lake|sea|beach|island|state|city|county|district|territory|capital|border)\b/i.test(a) ||
-            /^[A-Z][a-z]+(\s[A-Z][a-z]+)?$/.test(answer)) {
-            return 'place';
+        // Rivers and water features
+        if (/\b(river|river|ocean|lake|sea|beach|gulf|strait|canal)\b/i.test(a)) {
+            return 'water';
+        }
+
+        // US States and territories
+        if (/\b(state|territory|district|county|region)\b/i.test(a) ||
+            /^(texas|california|florida|new york|pennsylvania|ohio|georgia|north carolina|michigan|new jersey|virginia|washington|massachusetts|arizona|tennessee|missouri|maryland|wisconsin|colorado|minnesota|south carolina|alabama|louisiana|kentucky|oregon|oklahoma|connecticut|utah|iowa|nevada|arkansas|mississippi|kansas|new mexico|nebraska|idaho|hawaii|new hampshire|maine|montana|rhode island|delaware|south dakota|north dakota|alaska|vermont|wyoming)$/i.test(answer)) {
+            return 'state';
+        }
+
+        // Cities and capitals (single or double capitalized words)
+        if (/^[A-Z][a-z]+(\s[A-Z][a-z]+)?$/.test(answer) && !/\b(amendment|congress|court|bill|law|act|declaration|constitution|republic|union|nation|government|senate|house|branch)\b/i.test(a)) {
+            // Check if it looks like a city (proper noun format, not a government term)
+            return 'city';
+        }
+
+        // Government actions/functions (what something does)
+        if (/\b(reviews|makes|defines|protects|resolves|explains|signs|vetoes|appoints|advises|enforces|enacts)\b/i.test(a) ||
+            /\b(laws|rights|government|powers|treaties|bills|decisions|disputes)\b/i.test(a)) {
+            return 'function';
         }
 
         // Government/Documents (bill, law, amendment, constitution, etc)
-        if (/\b(bill|act|law|amendment|constitution|declaration|charter|treaty|document|proclamation)\b/i.test(a)) {
+        if (/\b(bill|act|law|amendment|constitution|declaration|charter|treaty|document|proclamation|congress|court|branch|senate|house|republic|union)\b/i.test(a)) {
             return 'document';
         }
 
         // Government roles/titles
-        if (/\b(president|senator|representative|judge|justice|governor|mayor|ambassador|general|secretary|attorney|speaker)\b/i.test(a)) {
+        if (/\b(president|senator|representative|judge|justice|governor|mayor|ambassador|general|secretary|attorney|speaker|chief)\b/i.test(a)) {
             return 'title';
+        }
+
+        // Native American tribes
+        if (/\b(apache|cherokee|navajo|sioux|lakota|crow|choctaw|seminole|mohegan|oneida|huron|shawnee|blackfeet|arawak|chippewa)\b/i.test(a)) {
+            return 'tribe';
         }
 
         // Default
@@ -180,52 +202,63 @@ class N400App {
         const seed = this.currentQuestion.id * 12345;
         const correctType = this.classifyAnswerType(correctAnswer);
 
-        // Collect all candidates from same category
-        const sameCategoryAnswers = allQuestions
+        // Priority tiers for wrong answers
+        let wrongAnswers = [];
+
+        // Tier 1: Exact type match from same category
+        const tier1 = allQuestions
             .filter(q => q.category === currentCat && q.id !== this.currentQuestion.id)
             .flatMap(q => q.answers)
-            .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim());
+            .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
+            .filter(a => this.classifyAnswerType(a) === correctType);
 
-        // Filter by type first - answers of similar type are more challenging
-        let wrongAnswersByType = sameCategoryAnswers.filter(a => this.classifyAnswerType(a) === correctType);
-
-        // If not enough same-type answers, add other types from same category
-        if (wrongAnswersByType.length < 3) {
-            const otherTypes = sameCategoryAnswers.filter(a => this.classifyAnswerType(a) !== correctType);
-            wrongAnswersByType = [...wrongAnswersByType, ...otherTypes];
-        }
-
-        // If still not enough, add from other categories (prefer same type)
-        if (wrongAnswersByType.length < 3) {
-            const otherCatSameType = allQuestions
-                .filter(q => q.category !== currentCat)
+        if (tier1.length >= 3) {
+            wrongAnswers = tier1;
+        } else {
+            // Tier 2: Related types from same category (e.g., city + state both geography)
+            const relatedTypes = this.getRelatedTypes(correctType);
+            const tier2 = allQuestions
+                .filter(q => q.category === currentCat && q.id !== this.currentQuestion.id)
                 .flatMap(q => q.answers)
                 .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
-                .filter(a => this.classifyAnswerType(a) === correctType);
-            wrongAnswersByType = [...wrongAnswersByType, ...otherCatSameType];
-        }
+                .filter(a => relatedTypes.includes(this.classifyAnswerType(a)));
 
-        // Last resort: any other answers
-        if (wrongAnswersByType.length < 3) {
-            const anyOther = allQuestions
-                .flatMap(q => q.answers)
-                .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
-                .filter(a => !wrongAnswersByType.includes(a));
-            wrongAnswersByType = [...wrongAnswersByType, ...anyOther];
+            wrongAnswers = [...tier1, ...tier2];
+
+            if (wrongAnswers.length < 3) {
+                // Tier 3: Exact type match from other categories
+                const tier3 = allQuestions
+                    .filter(q => q.category !== currentCat)
+                    .flatMap(q => q.answers)
+                    .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
+                    .filter(a => this.classifyAnswerType(a) === correctType);
+
+                wrongAnswers = [...wrongAnswers, ...tier3];
+            }
+
+            if (wrongAnswers.length < 3) {
+                // Tier 4: Any plausible answers
+                const tier4 = allQuestions
+                    .flatMap(q => q.answers)
+                    .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
+                    .filter(a => !wrongAnswers.includes(a));
+
+                wrongAnswers = [...wrongAnswers, ...tier4];
+            }
         }
 
         // Remove duplicates and filter
-        wrongAnswersByType = [...new Set(wrongAnswersByType)];
-        wrongAnswersByType = wrongAnswersByType.filter(a => a.length > 2);
+        wrongAnswers = [...new Set(wrongAnswers)];
+        wrongAnswers = wrongAnswers.filter(a => a.length > 2);
 
         // Deterministic sort using seeded random
-        wrongAnswersByType.sort((a, b) => {
+        wrongAnswers.sort((a, b) => {
             const randA = this.seededRandom(seed + a.charCodeAt(0));
             const randB = this.seededRandom(seed + b.charCodeAt(0));
             return randA - randB;
         });
 
-        const selectedWrongAnswers = wrongAnswersByType.slice(0, 3);
+        const selectedWrongAnswers = wrongAnswers.slice(0, 3);
 
         const choices = [correctAnswer, ...selectedWrongAnswers];
 
@@ -237,6 +270,24 @@ class N400App {
         });
 
         return choices;
+    }
+
+    // Get related types for better fallback (city and state are both geography, etc)
+    getRelatedTypes(answerType) {
+        const typeGroups = {
+            'city': ['state', 'water', 'city'],
+            'state': ['city', 'state', 'water'],
+            'water': ['state', 'city', 'water'],
+            'number': ['duration', 'number'],
+            'duration': ['number', 'duration'],
+            'title': ['document', 'title', 'function'],
+            'document': ['title', 'document'],
+            'function': ['title', 'function'],
+            'tribe': ['city', 'state'],
+            'name': ['title', 'name'],
+        };
+
+        return typeGroups[answerType] || [answerType];
     }
 
     // Check if answer is correct (with flexible matching)
