@@ -17,48 +17,61 @@ class N400App {
         this.render();
     }
 
-    // Initialize Web Speech API with Indian English support
+    // Initialize Web Speech API with Indian English support (Safari compatible)
     initSpeechRecognition() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return null;
+        // Support for different browsers
+        const SpeechRecognition = window.SpeechRecognition ||
+                                 window.webkitSpeechRecognition ||
+                                 window.mozSpeechRecognition ||
+                                 window.msSpeechRecognition;
 
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = true;
-        recognition.lang = 'en-IN'; // Indian English locale
-        recognition.maxAlternatives = 1;
+        if (!SpeechRecognition) {
+            console.warn('Speech Recognition not supported in this browser');
+            return null;
+        }
 
-        recognition.onstart = () => {
-            this.isListening = true;
-            this.recognizedText = '';
-            this.render();
-        };
+        try {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-IN'; // Indian English locale
+            recognition.maxAlternatives = 1;
 
-        recognition.onresult = (event) => {
-            let interimTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    this.recognizedText = transcript;
-                } else {
-                    interimTranscript += transcript;
+            recognition.onstart = () => {
+                this.isListening = true;
+                this.recognizedText = '';
+                this.render();
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        this.recognizedText = transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
                 }
-            }
-            this.render();
-        };
+                this.render();
+            };
 
-        recognition.onerror = (event) => {
-            console.error('Speech recognition error', event.error);
-            this.isListening = false;
-            this.render();
-        };
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                this.isListening = false;
+                this.render();
+            };
 
-        recognition.onend = () => {
-            this.isListening = false;
-            this.render();
-        };
+            recognition.onend = () => {
+                this.isListening = false;
+                this.render();
+            };
 
-        return recognition;
+            return recognition;
+        } catch (error) {
+            console.error('Error initializing speech recognition:', error);
+            return null;
+        }
     }
 
     // Initialize progress from localStorage
@@ -108,10 +121,26 @@ class N400App {
 
     // Generate 4 choice options
     generateChoices(correctAnswer) {
+        const currentCat = this.currentQuestion.category;
+
+        // Get all answers and filter out the correct one
         const allAnswers = allQuestions.flatMap(q => q.answers);
-        const wrongAnswers = allAnswers.filter(a =>
+        let wrongAnswers = allAnswers.filter(a =>
             a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim()
         );
+
+        // Prioritize wrong answers from same category (more challenging)
+        const sameCategory = allQuestions
+            .filter(q => q.category === currentCat && q.id !== this.currentQuestion.id)
+            .flatMap(q => q.answers)
+            .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim());
+
+        if (sameCategory.length > 0) {
+            wrongAnswers = sameCategory;
+        }
+
+        // Remove duplicates
+        wrongAnswers = [...new Set(wrongAnswers)];
 
         // Shuffle and pick 3 random wrong answers
         const shuffled = wrongAnswers.sort(() => Math.random() - 0.5);
