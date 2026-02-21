@@ -135,8 +135,41 @@ class N400App {
         return allQuestions[0];
     }
 
-    // Generate 4 choice options
-    // Seeded random for deterministic choice generation
+    // Classify answer type for better choice selection
+    classifyAnswerType(answer) {
+        const a = answer.toLowerCase().trim();
+
+        // Numbers (including number words)
+        if (/^\d+$/.test(a) || /^(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|hundred|thousand)$/i.test(a)) {
+            return 'number';
+        }
+
+        // Names (typically 1-3 words, all capitalized, contain only letters/spaces)
+        if (/^[A-Z][a-z]+(\s[A-Z][a-z]+)?(\s[A-Z][a-z.]+)?$/.test(answer)) {
+            return 'name';
+        }
+
+        // Places (state/river/capital names, or contains place keywords)
+        if (/\b(river|mountain|ocean|lake|sea|beach|island|state|city|county|district|territory|capital|border)\b/i.test(a) ||
+            /^[A-Z][a-z]+(\s[A-Z][a-z]+)?$/.test(answer)) {
+            return 'place';
+        }
+
+        // Government/Documents (bill, law, amendment, constitution, etc)
+        if (/\b(bill|act|law|amendment|constitution|declaration|charter|treaty|document|proclamation)\b/i.test(a)) {
+            return 'document';
+        }
+
+        // Government roles/titles
+        if (/\b(president|senator|representative|judge|justice|governor|mayor|ambassador|general|secretary|attorney|speaker)\b/i.test(a)) {
+            return 'title';
+        }
+
+        // Default
+        return 'concept';
+    }
+
+    // Generate 4 choice options with smarter selection
     seededRandom(seed) {
         const x = Math.sin(seed) * 10000;
         return x - Math.floor(x);
@@ -144,44 +177,55 @@ class N400App {
 
     generateChoices(correctAnswer) {
         const currentCat = this.currentQuestion.category;
-        const seed = this.currentQuestion.id * 12345; // Use question ID as seed for determinism
+        const seed = this.currentQuestion.id * 12345;
+        const correctType = this.classifyAnswerType(correctAnswer);
 
-        // Priority 1: Get answers from SAME CATEGORY
-        const sameCategory = allQuestions
+        // Collect all candidates from same category
+        const sameCategoryAnswers = allQuestions
             .filter(q => q.category === currentCat && q.id !== this.currentQuestion.id)
             .flatMap(q => q.answers)
             .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim());
 
-        // Priority 2: If not enough, get from other categories
-        let wrongAnswers = sameCategory;
-        if (wrongAnswers.length < 3) {
-            const relatedAnswers = allQuestions
-                .filter(q => q.category !== currentCat)
-                .flatMap(q => q.answers)
-                .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim());
-            wrongAnswers = [...wrongAnswers, ...relatedAnswers];
+        // Filter by type first - answers of similar type are more challenging
+        let wrongAnswersByType = sameCategoryAnswers.filter(a => this.classifyAnswerType(a) === correctType);
+
+        // If not enough same-type answers, add other types from same category
+        if (wrongAnswersByType.length < 3) {
+            const otherTypes = sameCategoryAnswers.filter(a => this.classifyAnswerType(a) !== correctType);
+            wrongAnswersByType = [...wrongAnswersByType, ...otherTypes];
         }
 
-        // Remove duplicates
-        wrongAnswers = [...new Set(wrongAnswers)];
-        wrongAnswers = wrongAnswers.filter(a => a.length > 2);
+        // If still not enough, add from other categories (prefer same type)
+        if (wrongAnswersByType.length < 3) {
+            const otherCatSameType = allQuestions
+                .filter(q => q.category !== currentCat)
+                .flatMap(q => q.answers)
+                .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
+                .filter(a => this.classifyAnswerType(a) === correctType);
+            wrongAnswersByType = [...wrongAnswersByType, ...otherCatSameType];
+        }
+
+        // Last resort: any other answers
+        if (wrongAnswersByType.length < 3) {
+            const anyOther = allQuestions
+                .flatMap(q => q.answers)
+                .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
+                .filter(a => !wrongAnswersByType.includes(a));
+            wrongAnswersByType = [...wrongAnswersByType, ...anyOther];
+        }
+
+        // Remove duplicates and filter
+        wrongAnswersByType = [...new Set(wrongAnswersByType)];
+        wrongAnswersByType = wrongAnswersByType.filter(a => a.length > 2);
 
         // Deterministic sort using seeded random
-        wrongAnswers.sort((a, b) => {
+        wrongAnswersByType.sort((a, b) => {
             const randA = this.seededRandom(seed + a.charCodeAt(0));
             const randB = this.seededRandom(seed + b.charCodeAt(0));
             return randA - randB;
         });
 
-        const selectedWrongAnswers = wrongAnswers.slice(0, 3);
-
-        // Fallback if not enough
-        if (selectedWrongAnswers.length < 3) {
-            const allAnswers = allQuestions.flatMap(q => q.answers)
-                .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
-                .filter(a => !selectedWrongAnswers.includes(a));
-            selectedWrongAnswers.push(...allAnswers.slice(0, 3 - selectedWrongAnswers.length));
-        }
+        const selectedWrongAnswers = wrongAnswersByType.slice(0, 3);
 
         const choices = [correctAnswer, ...selectedWrongAnswers];
 
