@@ -742,17 +742,15 @@ class N400App {
                         const isSelected = this.selectedChoice &&
                                          this.selectedChoice.toLowerCase().trim() === choice.toLowerCase().trim();
                         return `<button class="choice-button ${isSelected ? 'selected' : ''}"
-                                data-choice="${this.escapeHtml(choice)}"
+                                onclick="app.selectChoice('${this.escapeHtml(choice)}')"
                                 type="button">
                             ${this.escapeHtml(choice)}
                         </button>`;
                     }).join('')}
                 </div>
-                ${this.selectedChoice ? `
-                    <button class="submit-button" style="margin-top: 16px;" onclick="app.submitSelectedChoice()">
-                        Submit Answer
-                    </button>
-                ` : ''}
+                <button class="submit-button" style="margin-top: 16px;" onclick="app.submitSelectedChoice()">
+                    Submit Answer
+                </button>
             `;
         }
 
