@@ -600,6 +600,7 @@ class N400App {
         this.currentView = 'quiz';
         this.currentQuestion = this.getNextQuestion();
         this.showingChoices = false;
+        this.selectedChoice = null; // Ensure no selection
         this.render();
         setTimeout(() => {
             this.speak(this.currentQuestion.text);
