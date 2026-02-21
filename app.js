@@ -91,6 +91,31 @@ class N400App {
         text = text.replace(/[.,;:-]/g, ' ');
         text = text.replace(/\s+/g, ' ').trim();
 
+        // Replace common abbreviations with full words
+        const abbreviations = {
+            'ct': 'court',
+            'rep': 'representative',
+            'sens': 'senators',
+            'sen': 'senator',
+            'pres': 'president',
+            'amb': 'ambassador',
+            'sec': 'secretary',
+            'u.s.': 'united states',
+            'us': 'united states',
+            'dept': 'department',
+            'gov': 'government',
+            'approx': 'approximately',
+            'nr': 'northern',
+            'sr': 'senior',
+            'jr': 'junior',
+            'ave': 'avenue',
+            'st': 'saint'
+        };
+
+        Object.entries(abbreviations).forEach(([abbr, full]) => {
+            text = text.replace(new RegExp('\\b' + abbr + '\\b', 'g'), full);
+        });
+
         // Replace month names with numbers
         const months = {
             'january': '1', 'jan': '1',
