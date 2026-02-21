@@ -299,7 +299,7 @@ input:focus, textarea:focus {
     font-weight: 500;
     line-height: 1.4;
     transition: all 0.2s ease;
-    /* iOS fixes */
+    /* iOS fixes - prevent auto-focus styling */
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     -webkit-appearance: none;
@@ -307,18 +307,19 @@ input:focus, textarea:focus {
     outline: none;
 }
 
-.choice-button:hover {
-    background-color: var(--primary-color);
-    color: white;
+/* Explicitly prevent focus from looking like selected */
+.choice-button:focus,
+.choice-button:focus-visible,
+.choice-button:active {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
-.choice-button:focus {
-    outline: none;
-}
-
-.choice-button:focus-visible {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
+.choice-button:hover:not(.selected) {
+    opacity: 0.8;
 }
 
 .choice-button.selected {
@@ -326,6 +327,15 @@ input:focus, textarea:focus {
     color: white;
     font-weight: 600;
     border-color: var(--primary-color);
+}
+
+/* Make sure selected state overrides focus/hover */
+.choice-button.selected:focus,
+.choice-button.selected:focus-visible,
+.choice-button.selected:active {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
 }
 
 /* Voice Input Styles */

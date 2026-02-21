@@ -750,11 +750,21 @@ class N400App {
         } else {
             // Use stored choices (don't regenerate - keeps them stable)
             const choices = this.currentChoices || [];
+
+            // DEBUG: Log what's happening with selectedChoice
+            if (choices.length > 0) {
+                console.log('DEBUG renderQuiz: selectedChoice =', this.selectedChoice);
+                console.log('DEBUG renderQuiz: choices =', choices);
+            }
+
             answerHTML = `
                 <div class="choices-container active">
                     ${choices.map((choice, index) => {
                         const isSelected = this.selectedChoice &&
                                          this.selectedChoice.toLowerCase().trim() === choice.toLowerCase().trim();
+                        if (isSelected) {
+                            console.log('DEBUG: Button ' + index + ' marked as selected:', choice);
+                        }
                         return `<button class="choice-button ${isSelected ? 'selected' : ''}"
                                 data-choice-index="${index}"
                                 type="button">
