@@ -392,7 +392,30 @@ class N400App {
             100: ['I-131', 'Form N-600', 'Green Card Application'], // N-400 alternatives
 
             // Recent political
-            84: ['Democratic', 'Independent', 'Libertarian'], // President's party (Republican - but show alternatives)
+            84: ['Democratic', 'Independent', 'Libertarian'], // President's party (Republican)
+
+            // Definition/Concept Questions - CRITICAL (what X do/is)
+            2: ['Defines the government', 'Protects basic rights', 'Established the courts'], // What does Constitution do
+            4: ['A change to Constitution', 'An addition to Constitution', 'A law passed by Congress'], // Amendment
+            18: ['Reviews laws', 'Explains laws', 'Resolves disputes between states'], // What does judicial do
+            28: ['Advises the President', 'Manages the military', 'Collects taxes'], // Cabinet function
+            30: ['Advises about foreign policy', 'Manages defense', 'Leads the military'], // Secretary of State
+            87: ['to protect democracy', 'checks and balances', 'separation of powers'], // Why limit President
+            92: ['refuse to sign a bill', 'prevent bill from becoming law', 'reject appointments'], // President veto
+            93: ['an agreement between countries', 'a formal declaration of friendship', 'a peace treaty between nations'], // Treaty definition
+
+            // Rights/Laws Questions
+            31: ['serve on a jury', 'vote in elections', 'run for public office'], // Citizens only responsibility
+            33: ['freedom of speech', 'freedom of religion', 'freedom of assembly'], // Everyone's rights
+            35: ['obey US laws', 'serve in military if needed', 'defend the Constitution'], // Promise to citizen
+
+            // Holiday/Symbol Questions
+            79: ['Christmas', 'Independence Day', 'New Year\'s Day'], // First colonist holiday (Thanksgiving)
+            80: ['New Year\'s Day', 'Independence Day', 'Christmas'], // National holidays
+
+            // Government roles/purposes
+            89: ['protect people', 'make laws', 'enforce laws'], // State government purpose
+            90: ['protect people', 'make local laws', 'enforce local laws'], // Local government purpose
         };
 
         return curated[questionId] || null;
