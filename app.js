@@ -7,6 +7,7 @@ class N400App {
         this.progress = {};
         this.isSpeaking = false;
         this.showingChoices = false;
+        this.selectedChoice = null;
 
         this.initializeProgress();
         this.setupEventListeners();
@@ -270,11 +271,17 @@ class N400App {
             answerHTML = `
                 <div class="choices-container active">
                     ${choices.map(choice => `
-                        <button class="choice-button" onclick="app.selectChoice('${choice.replace(/'/g, "\\'")}')">
+                        <button class="choice-button ${this.selectedChoice === choice ? 'selected' : ''}"
+                                onclick="app.selectChoice('${choice.replace(/'/g, "\\'")}')">
                             ${choice}
                         </button>
                     `).join('')}
                 </div>
+                ${this.selectedChoice ? `
+                    <button class="submit-button" style="margin-top: 16px;" onclick="app.submitSelectedChoice()">
+                        Submit Answer
+                    </button>
+                ` : ''}
             `;
         }
 
@@ -507,8 +514,17 @@ class N400App {
         }
     }
 
-    // Action: Select Choice
+    // Action: Select Choice (mark as selected, don't submit yet)
     selectChoice(answer) {
+        this.selectedChoice = answer;
+        this.render();
+    }
+
+    // Action: Submit Selected Choice
+    submitSelectedChoice() {
+        const answer = this.selectedChoice;
+        if (!answer) return;
+
         const isCorrect = this.isAnswerCorrect(answer, this.currentQuestion);
 
         // Update progress
@@ -549,6 +565,7 @@ class N400App {
     nextQuestion() {
         this.currentQuestion = this.getNextQuestion();
         this.showingChoices = false;
+        this.selectedChoice = null;
         window.speechSynthesis.cancel();
         this.isSpeaking = false;
 
