@@ -10,7 +10,8 @@ class N400App {
         this.selectedChoice = null;
         this.isListening = false;
         this.recognizedText = '';
-        this.currentChoices = []; // Store choices so they don't regenerate
+        this.currentChoices = null; // Store choices so they don't regenerate
+        this.choicesGenerated = false; // Flag to track if choices have been generated
         this.speechRecognition = this.initSpeechRecognition();
 
         this.initializeProgress();
@@ -646,9 +647,11 @@ class N400App {
         this.showingChoices = !this.showingChoices;
         if (this.showingChoices) {
             this.selectedChoice = null; // Reset selection BEFORE rendering choices
-            // Generate choices only once (don't regenerate on each render)
-            if (this.currentChoices.length === 0) {
+            // Generate choices only ONCE when first showing them
+            if (!this.choicesGenerated) {
                 this.currentChoices = this.generateChoices(this.currentQuestion.answers[0]);
+                this.choicesGenerated = true;
+                console.log('Generated choices:', this.currentChoices);
             }
         }
         this.render();
@@ -747,7 +750,8 @@ class N400App {
         this.currentQuestion = this.getNextQuestion();
         this.showingChoices = false;
         this.selectedChoice = null;
-        this.currentChoices = []; // Reset choices for new question
+        this.currentChoices = null; // Reset choices for new question
+        this.choicesGenerated = false; // Reset flag so new choices are generated
         window.speechSynthesis.cancel();
         this.isSpeaking = false;
 
