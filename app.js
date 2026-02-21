@@ -491,7 +491,7 @@ class N400App {
             100: ['Thanksgiving', 'Christmas', 'New Year\'s Day'],
 
             // Q101-105: Texas specific
-            101: ['John Cornyn', 'Greg Abbott', 'Ted Cruz'],
+            101: ['Greg Abbott', 'Dan Patrick', 'John Carter'], // TX Gov + Lt. Gov + Representative (NOT senators)
             102: ['Kay Granger', 'Lloyd Doggett', 'Marc Veasey'],
             103: ['Houston', 'Dallas', 'San Antonio'],
             104: ['1836', '1861', '1876'],
