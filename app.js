@@ -509,8 +509,18 @@ class N400App {
 
     // Action: Select Choice
     selectChoice(answer) {
-        document.getElementById('answerInput').value = answer;
-        this.submitAnswer();
+        const isCorrect = this.isAnswerCorrect(answer, this.currentQuestion);
+
+        // Update progress
+        this.progress[this.currentQuestion.id].asked++;
+        if (isCorrect) {
+            this.progress[this.currentQuestion.id].correct++;
+        }
+        this.saveProgress();
+
+        // Show feedback
+        const correctAnswer = this.currentQuestion.answers.join(' or ');
+        this.showFeedback(isCorrect, correctAnswer);
     }
 
     // Action: Submit Answer
