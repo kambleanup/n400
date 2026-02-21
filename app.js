@@ -202,43 +202,97 @@ class N400App {
         const currentCat = this.currentQuestion.category;
         const seed = questionId * 12345;
         const correctType = this.classifyAnswerType(correctAnswer);
+        const questionText = this.currentQuestion.text.toLowerCase();
 
-        // Check if we have curated wrong answers for this specific question
-        const curatedWrongs = this.getCuratedWrongAnswers(questionId, correctAnswer);
+        // Get curated wrong answers if available for this specific question
+        const curatedWrongs = this.getCuratedWrongAnswersForQuestion(questionId, correctAnswer);
         if (curatedWrongs && curatedWrongs.length >= 3) {
             const selectedWrongAnswers = curatedWrongs.slice(0, 3);
-
-            // Deterministic shuffle
             const choices = [correctAnswer, ...selectedWrongAnswers];
             choices.sort((a, b) => {
                 const randA = this.seededRandom(seed + a.charCodeAt(0));
                 const randB = this.seededRandom(seed + b.charCodeAt(0));
                 return randA - randB;
             });
-
             return choices;
         }
 
-        // Otherwise, use smart multi-tier selection
+        // Smart multi-tier selection with better filtering
         let wrongAnswers = [];
+
+        // Filter for answers that make semantic sense for this question
+        const isSuitableAnswer = (answer) => {
+            const ans = answer.toLowerCase().trim();
+
+            // For "right or freedom" questions, only select other rights/freedoms
+            if (questionText.includes('right') || questionText.includes('freedom')) {
+                const rightsFreedoms = ['speech', 'religion', 'assembly', 'press', 'petition', 'petition the government',
+                    'freedom', 'right', 'liberty', 'bear arms', 'vote', 'voting', 'privacy', 'due process'];
+                return rightsFreedoms.some(w => ans.includes(w));
+            }
+
+            // For questions about numbers/counts, exclude obviously wrong categories
+            if (questionText.includes('how many') || questionText.includes('how much')) {
+                return /\b\d+\b|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|hundred|thousand|million/i.test(answer);
+            }
+
+            // For "What is the X branch" questions, only government entities
+            if (questionText.includes('branch of government') || questionText.includes('branch of the government')) {
+                const branches = ['supreme court', 'senate', 'house of representatives', 'congress', 'executive', 'judicial', 'legislative'];
+                return branches.some(w => ans.toLowerCase().includes(w));
+            }
+
+            // For "What does the X branch do" questions, only actions/functions
+            if ((questionText.includes('does the') || questionText.includes('does the')) &&
+                (questionText.includes('branch') || questionText.includes('do'))) {
+                const badWords = ['amendment', 'constitution', 'declaration', 'bill of rights', 'year', 'years'];
+                return !badWords.some(w => ans.toLowerCase().includes(w));
+            }
+
+            // For questions about presidents, people, etc.
+            if (questionText.includes('president') || questionText.includes('senator') || questionText.includes('representative')) {
+                // Exclude document names and abstract concepts
+                const badWords = ['constitution', 'amendment', 'declaration', 'bill', 'congress', 'republic', 'union', 'years', 'year'];
+                return !badWords.some(w => ans.includes(w));
+            }
+
+            // For geography questions, avoid non-geographic answers
+            if (questionText.includes('capital') || questionText.includes('state') || questionText.includes('city') ||
+                questionText.includes('river') || questionText.includes('ocean') || questionText.includes('border')) {
+                const badWords = ['amendment', 'law', 'act', 'president', 'senator', 'year', 'years'];
+                return !badWords.some(w => ans.includes(w));
+            }
+
+            // For history questions, avoid document names as answers
+            if (questionText.includes('war') || questionText.includes('fought') || questionText.includes('declared')) {
+                const badWords = ['constitution', 'amendment', 'declaration of independence', 'bill of rights', 'year', 'years'];
+                return !badWords.some(w => ans.includes(w));
+            }
+
+            // Default: exclude obviously wrong categories
+            const alwaysBad = ['constitution', 'amendment'];
+            return !alwaysBad.some(w => ans.includes(w));
+        };
 
         // Tier 1: Exact type match from same category
         const tier1 = allQuestions
             .filter(q => q.category === currentCat && q.id !== questionId)
             .flatMap(q => q.answers)
             .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
-            .filter(a => this.classifyAnswerType(a) === correctType);
+            .filter(a => this.classifyAnswerType(a) === correctType)
+            .filter(a => isSuitableAnswer(a));
 
         if (tier1.length >= 3) {
             wrongAnswers = tier1;
         } else {
-            // Tier 2: Related types from same category (e.g., city + state both geography)
+            // Tier 2: Related types from same category
             const relatedTypes = this.getRelatedTypes(correctType);
             const tier2 = allQuestions
                 .filter(q => q.category === currentCat && q.id !== questionId)
                 .flatMap(q => q.answers)
                 .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
-                .filter(a => relatedTypes.includes(this.classifyAnswerType(a)));
+                .filter(a => relatedTypes.includes(this.classifyAnswerType(a)))
+                .filter(a => isSuitableAnswer(a));
 
             wrongAnswers = [...tier1, ...tier2];
 
@@ -248,23 +302,25 @@ class N400App {
                     .filter(q => q.category !== currentCat)
                     .flatMap(q => q.answers)
                     .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
-                    .filter(a => this.classifyAnswerType(a) === correctType);
+                    .filter(a => this.classifyAnswerType(a) === correctType)
+                    .filter(a => isSuitableAnswer(a));
 
                 wrongAnswers = [...wrongAnswers, ...tier3];
             }
 
             if (wrongAnswers.length < 3) {
-                // Tier 4: Any plausible answers
+                // Tier 4: Any plausible answers (with semantic filtering)
                 const tier4 = allQuestions
                     .flatMap(q => q.answers)
                     .filter(a => a.toLowerCase().trim() !== correctAnswer.toLowerCase().trim())
-                    .filter(a => !wrongAnswers.includes(a));
+                    .filter(a => !wrongAnswers.includes(a))
+                    .filter(a => isSuitableAnswer(a));
 
                 wrongAnswers = [...wrongAnswers, ...tier4];
             }
         }
 
-        // Remove duplicates and filter
+        // Remove duplicates and short answers
         wrongAnswers = [...new Set(wrongAnswers)];
         wrongAnswers = wrongAnswers.filter(a => a.length > 2);
 
@@ -307,367 +363,123 @@ class N400App {
         return typeGroups[answerType] || [answerType];
     }
 
-    // Curated fallback wrong answers for specific questions (using OFFICIAL USCIS question IDs 1-100)
-    getCuratedWrongAnswers(questionId, correctAnswer) {
-        const curated = {
-            // Government Officials - Present/Current
-            15: ['Joe Biden', 'Barack Obama', 'George W. Bush'],  // Who is President
-            16: ['Kamala Harris', 'Mike Pence', 'Joe Biden'],      // Who is VP
-            21: ['Samuel Alito', 'Clarence Thomas', 'Elena Kagan'], // Chief Justice
-            85: ['Kevin McCarthy', 'Nancy Pelosi', 'Mitch McConnell'], // Speaker of House
-            101: ['John Cornyn', 'Beto O\'Rourke', 'Greg Abbott'],  // Texas Senators
-            102: ['Lloyd Doggett', 'Marc Veasey', 'Ronnie Jackson'], // Texas House Rep
-
-            // Capitals/Geography
-            74: ['Dallas', 'Houston', 'San Antonio'],  // Capital of Texas (Austin)
-            75: ['New York', 'Boston', 'Philadelphia'], // Capital of US (Washington DC)
-            103: ['Dallas', 'Houston', 'San Antonio'], // Capital of Texas again
-
-            // Rivers
-            73: ['Rio Grande', 'Colorado River', 'Brazos River'], // Longest rivers
-            105: ['Colorado River', 'Missouri River', 'Brazos River'], // Texas border
-
-            // Numbers/Counts
-            7: ['2', '4', '5'],        // Branches (3)
-            12: ['50', '435', '27'],   // Senators (100)
-            20: ['8', '11', '13'],     // Supreme Court justices (9)
-            63: ['1', '3', '4'],       // Senators per state (2)
-            66: ['300', '540', '600'], // House Representatives (435)
-
-            // Years/Dates
-            23: ['12', '33', '15'],    // Amendments (27)
-            24: ['2 years', '6 years', '8 years'], // President term (4 years)
-            25: ['September', 'October', 'December'], // Election month (November)
-            44: ['July 4, 1787', 'September 17, 1787', 'December 25, 1776'], // Declaration (July 4, 1776)
-            47: ['1776', '1789', '1791'], // Constitution written (1787)
-            51: ['Thomas Jefferson', 'Benjamin Franklin', 'Alexander Hamilton'], // First President (George Washington)
-            59: ['Andrew Jackson', 'Theodore Roosevelt', 'Benjamin Harrison'], // President on $5 bill (Abraham Lincoln)
-            104: ['1821', '1865', '1900'], // Texas statehood (1845)
-
-            // Ages/Durations
-            36: ['16', '17', '21'],     // Voting age (18)
-            38: ['14-20', '16-25', '18-30'], // Selective Service (18-26)
-            64: ['2 years', '4 years', '8 years'], // Senator term (6 years)
-            67: ['4 years', '6 years', '8 years'], // House rep term (2 years)
-
-            // Historical figures
-            50: ['Benjamin Franklin', 'John Adams', 'James Madison'], // Father of Country (George Washington)
-            55: ['Elizabeth Cady Stanton', 'Sojourner Truth', 'Harriet Tubman'], // Susan B. Anthony alternatives
-            58: ['$1 bill', '$10 bill', '$20 bill'], // President on $1 (George Washington)
-            60: ['Alexander Hamilton', 'Thomas Jefferson', 'Benjamin Franklin'], // $10 bill (Alexander Hamilton)
-
-            // Concepts/Definitions
-            81: ['March 15', 'April 1', 'May 1'],    // Tax filing deadline (April 15)
-            88: ['NATO', 'World Bank', 'Red Cross'], // Purpose of UN (discuss world problems)
-
-            // Constitution/Government
-            3: ['E Pluribus Unum', 'In God We Trust', 'Out of Many, One'], // First three words (We the People)
-            62: ['E Pluribus Unum', 'In God We Trust', 'Out of Many, One'], // First three words (We the People)
-
-            // Senate/House specifics
-            63: ['1', '4', '10'],       // Senators per state (2)
-            65: ['1 term', '2 terms', '3 terms'], // Senator re-election (no limit)
-            67: ['4 years', '6 years', '8 years'], // House term (2 years)
-            69: ['the state legislature', 'their congressional district', 'the governor'], // Who senator represents (all people of state)
-            70: ['their representation dates', 'the number of senators', 'the state governor'], // Why more reps (population)
-            91: ['Congress', 'the Senate', 'the Supreme Court'], // Who signs bills (President)
-
-            // Flag/Symbols
-            76: ['the original founding year', 'the 13 presidents', 'the 13 signers'], // Why 13 stripes (13 colonies)
-            77: ['the 50 presidents', 'the 50 territories', 'the 50 major cities'], // Why 50 stars (50 states)
-            78: ['America the Beautiful', 'Yankee Doodle', 'Battle Hymn of Republic'], // National anthem (Star-Spangled Banner)
-            79: ['Christmas', 'Independence Day', 'Thanksgiving Day'], // First holiday (Thanksgiving)
-
-            // Geography numbers
-            95: ['six', '8', '9'],      // How many continents (7)
-            96: ['three', '6', '7'],    // How many oceans (4/5)
-            97: ['Texas', 'California', 'Montana'], // Largest state (Alaska)
-            98: ['Delaware', 'Connecticut', 'Vermont'], // Smallest state (Rhode Island)
-
-            // Historical/Legislative
-            48: ['Gouverneur Morris', 'Benjamin Franklin', 'George Washington'], // Federalist Papers writers
-            52: ['Florida', 'Alaska', 'Puerto Rico'], // Territory bought from France (Louisiana)
-            53: ['World War I', 'World War II', 'Korean War'], // Wars in 1800s (not applicable but for structure)
-            57: ['federal power', 'executive control', 'central government'], // Anti-Federalist concern (states' rights)
-            100: ['I-131', 'Form N-600', 'Green Card Application'], // N-400 alternatives
-
-            // Recent political
-            84: ['Democratic', 'Independent', 'Libertarian'], // President's party (Republican)
-
-            // Definition/Concept Questions - CRITICAL (what X do/is)
-            2: ['Defines the government', 'Protects basic rights', 'Established the courts'], // What does Constitution do
-            4: ['A change to Constitution', 'An addition to Constitution', 'A law passed by Congress'], // Amendment
-            18: ['Reviews laws', 'Explains laws', 'Resolves disputes between states'], // What does judicial do
-            28: ['Advises the President', 'Manages the military', 'Collects taxes'], // Cabinet function
-            30: ['Advises about foreign policy', 'Manages defense', 'Leads the military'], // Secretary of State
-            87: ['to protect democracy', 'checks and balances', 'separation of powers'], // Why limit President
-            92: ['refuse to sign a bill', 'prevent bill from becoming law', 'reject appointments'], // President veto
-            93: ['an agreement between countries', 'a formal declaration of friendship', 'a peace treaty between nations'], // Treaty definition
-
-            // Rights/Laws Questions
-            31: ['serve on a jury', 'vote in elections', 'run for public office'], // Citizens only responsibility
-            33: ['freedom of speech', 'freedom of religion', 'freedom of assembly'], // Everyone's rights
-            35: ['obey US laws', 'serve in military if needed', 'defend the Constitution'], // Promise to citizen
-
-            // Holiday/Symbol Questions
-            79: ['Christmas', 'Independence Day', 'New Year\'s Day'], // First colonist holiday (Thanksgiving)
-            80: ['New Year\'s Day', 'Independence Day', 'Christmas'], // National holidays
-
-            // Government roles/purposes
-            42: ['protect people', 'make laws', 'enforce laws'], // State government purpose
-            41: ['protect people', 'make federal laws', 'enforce laws'], // Federal government purpose
-
-            // USCIS Q8: Three branches
-            8: ['state, county, and federal', 'Congress, Senate, and House', 'President, Cabinet, and Courts'],
-
-            // USCIS Q13: Name one branch
-            13: ['the Cabinet', 'the Supreme Court', 'the Senate'],
-
-            // USCIS Q37: What judicial does
-            37: ['makes federal laws', 'enforces the laws', 'creates new amendments'],
-
-            // USCIS Q33: Who signs bills
-            33: ['Congress', 'the Senate', 'the Speaker of the House'],
-
-            // USCIS Q34: Who vetoes bills
-            34: ['Congress', 'the Senate', 'the Supreme Court'],
-
-            // USCIS Q2: What Constitution does
-            2: ['created the government', 'listed all laws', 'established the courts'],
-
-            // USCIS Q4: Amendment
-            4: ['a law from Congress', 'a Supreme Court decision', 'a presidential order'],
-
-            // USCIS Q14: Stops one branch
-            14: ['the Supreme Court only', 'Congress and President only', 'state governments'],
-
-            // USCIS Q48: Voting amendments
-            48: ['only wealthy people', 'only men can vote', 'must own property'],
-
-            // USCIS Q49: Citizen responsibility
-            49: ['run for public office', 'pay taxes', 'join the military'],
-
-            // USCIS Q62: Declaration author
-            62: ['Benjamin Franklin', 'George Washington', 'John Adams'],
-
-            // USCIS Q65: Constitutional Convention
-            65: ['fought the British', 'declared independence', 'created Bill of Rights'],
-
-            // USCIS Q72: War in 1800s
-            72: ['World War I', 'World War II', 'Vietnam War'],
-
-            // USCIS Q73: Civil War
-            73: ['Revolutionary War', 'War of 1812', 'Spanish-American War'],
-
-            // USCIS Q78: War in 1900s
-            78: ['Civil War', 'War of 1812', 'Mexican-American War'],
-
-            // USCIS Q79: President WWI
-            79: ['Theodore Roosevelt', 'Franklin Roosevelt', 'Harry Truman'],
-
-            // USCIS Q80: President WWII
-            80: ['Herbert Hoover', 'Harry Truman', 'Dwight Eisenhower'],
-
-            // USCIS Q81: WWII fighters
-            81: ['France, Britain, and Russia', 'Germany and Italy only', 'Japan only'],
-
-            // USCIS Q82: Eisenhower war
-            82: ['World War I', 'Korean War', 'Vietnam War'],
-
-            // USCIS Q89: West Coast ocean
-            89: ['Atlantic Ocean', 'Arctic Ocean', 'Indian Ocean'],
-
-            // USCIS Q90: East Coast ocean
-            90: ['Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'],
-
-            // USCIS Q91: U.S. territory
-            91: ['Mexico', 'Canada', 'Bahamas'],
-
-            // USCIS Q92: Borders Canada
-            92: ['Texas', 'Florida', 'California'],
-
-            // USCIS Q93: Borders Mexico
-            93: ['Florida', 'Colorado', 'Utah'],
-
-            // USCIS Q95: Statue of Liberty
-            95: ['Boston Harbor', 'San Francisco Bay', 'Chesapeake Bay'],
-
-            // USCIS Q71: Territory from France 1803 (currently showing people - NEEDS FIX)
-            71: ['Florida Territory', 'Oregon Territory', 'Texas Territory'],
-
-            // USCIS Q74: Civil War cause
-            74: ['westward expansion', 'trade disagreements', 'economic competition'],
-
-            // USCIS Q75: Lincoln importance
-            75: ['led the Revolutionary War', 'was the first President', 'founded the Republican Party'],
-
-            // USCIS Q76: Emancipation Proclamation
-            76: ['ended segregation', 'gave women right to vote', 'granted statehood to states'],
-
-            // USCIS Q59: Who lived in America before Europeans
-            59: ['Europeans', 'Africans', 'Asian explorers'],
-
-            // USCIS Q60: Group taken as slaves
-            60: ['Europeans', 'Native Americans', 'Asians'],
-
-            // USCIS Q61: Why colonists fought British
-            61: ['for independence from Spain', 'for more territory', 'for trade rights'],
-
-            // USCIS Q63: Declaration adoption date
-            63: ['July 4, 1787', 'September 17, 1787', 'December 25, 1776'],
-
-            // USCIS Q66: Constitution written
-            66: ['1776', 'Declaration of Independence year', 'Bill of Rights year'],
-
-            // USCIS Q69: Father of Our Country
-            69: ['Benjamin Franklin', 'Thomas Jefferson', 'James Madison'],
-
-            // USCIS Q70: First President
-            70: ['Thomas Jefferson', 'John Adams', 'Benjamin Franklin'],
-
-            // USCIS Q58: Reason colonists came
-            58: ['economic competition', 'to escape war', 'to trade with Indians'],
-
-            // USCIS Q30: If President can't serve
-            30: ['the Speaker of House', 'a new election is held', 'Congress votes'],
-
-            // USCIS Q31: If President and VP can't serve
-            31: ['a new election', 'the Attorney General', 'the Chief Justice'],
-
-            // USCIS Q32: Commander in Chief
-            32: ['the Secretary of Defense', 'Congress', 'the Joint Chiefs of Staff'],
-
-            // USCIS Q99: Independence Day date
-            99: ['June 4', 'August 4', 'September 4'],
-
-            // USCIS Q100: Two national holidays
-            100: ['Groundhog Day', 'Halloween', 'Valentine\'s Day'],
-
-            // ===== COMPREHENSIVE CURATED ANSWERS FOR ALL 100 USCIS QUESTIONS =====
-
-            // Q1-Q12: Principles of American Democracy
-            1: ['Bill of Rights', 'Declaration of Independence', 'Articles of Confederation'],
+    // OFFICIAL USCIS-BASED CURATIONS for all 105 questions
+    // Q1-100 use official USCIS answers; Q101-105 are Texas-specific
+    getCuratedWrongAnswersForQuestion(questionId, correctAnswer) {
+        const curations = {
+            1: ['the Declaration of Independence', 'the Bill of Rights', 'the Pledge of Allegiance'],
+            2: ['defines the government', 'protects basic rights', 'sets up the government'],
             3: ['In God We Trust', 'E Pluribus Unum', 'One Nation Under God'],
-            5: ['the Constitution', 'the Declaration', 'the Amendments'],
-            6: ['voting rights', 'property rights', 'employment rights'],
-            9: ['equality', 'freedom', 'property rights'],
-            10: ['You must practice a religion', 'Only one religion allowed', 'Government chooses religion'],
-            11: ['socialist economy', 'communist economy', 'government economy'],
-            12: ['Some people are above law', 'Leaders make their own rules', 'Government can ignore rules'],
-
-            // Q13-Q25: Branches of Government
-            13: ['the Cabinet', 'the Supreme Court', 'the Senate'],
-            14: ['the Supreme Court', 'Congress only', 'state governments'],
+            4: ['a change to the Constitution', 'an addition to the Constitution', 'a law passed by Congress'],
+            5: ['the Constitution', 'the Declaration of Independence', 'the Bill of Rights'],
+            6: ['religion', 'assembly', 'press'],
+            7: ['26', '28', '25'],
+            8: ['announced our independence', 'declared our independence', 'said that the United States is free'],
+            9: ['life', 'liberty', 'pursuit of happiness'],
+            10: ['You can practice any religion', 'You can choose any religion', 'Religion is protected by government'],
+            11: ['capitalist economy', 'market economy', 'communist economy'],
+            12: ['Everyone must follow the law', 'Leaders must obey the law', 'No one is above the law'],
+            13: ['Congress', 'legislative', 'President'],
+            14: ['checks and balances', 'separation of powers', 'the Bill of Rights'],
             15: ['Congress', 'the Senate', 'the Supreme Court'],
-            16: ['the President', 'the Supreme Court', 'the States'],
-            17: ['President and Cabinet', 'President and Courts', 'Executive and Judicial'],
-            18: ['50', '435', '27'],
-            19: ['2', '4', '8'],
-            21: ['100', '50', '300'],
-            22: ['4', '6', '8'],
-            24: ['individual states', 'the Congress', 'local governments'],
-            25: ['their electoral votes', 'historic importance', 'geographic size'],
-            26: ['2', '6', '8'],
-            27: ['September', 'October', 'December'],
-
-            // Q28-Q40: Executive and Judicial Branches
-            28: ['Joe Biden', 'Barack Obama', 'George W. Bush'],
-            29: ['Kamala Harris', 'Mike Pence', 'Joe Biden'],
-            30: ['the Speaker of House', 'new elections held', 'Congress votes'],
-            31: ['a new election', 'the Attorney General', 'the Chief Justice'],
-            32: ['the Secretary of Defense', 'Congress', 'the Joint Chiefs'],
-            33: ['Congress', 'the Senate', 'the Speaker of House'],
-            34: ['Congress', 'the Senate', 'the Supreme Court'],
-            35: ['enforces the laws', 'makes federal laws', 'commands military'],
-            36: ['Ambassador to UN', 'Federal Reserve Chair', 'US Trade Representative'],
-            37: ['makes federal laws', 'enforces the laws', 'creates amendments'],
-            38: ['the Court of Appeals', 'the Federal Court', 'the State Supreme Court'],
-            39: ['7', '8', '11'],
-            40: ['Samuel Alito', 'Clarence Thomas', 'Elena Kagan'],
-
-            // Q41-Q47: Federal and State Powers
-            41: ['provide education', 'issue driver\'s licenses', 'regulate commerce between states'],
-            42: ['declare war', 'print money', 'sign treaties with countries'],
-            43: ['answers vary by state'],
-            44: ['answers vary by state'],
-            // Q89-Q90 State and Local Government Purposes (if they exist)
-            89: ['make federal laws', 'declare wars', 'print money'],
-            90: ['make federal laws', 'declare wars', 'print money'],
-            45: ['Democratic and Green Party', 'Republican and Libertarian', 'Independent and Socialist'],
-            46: ['Democratic', 'Independent', 'Libertarian'],
+            16: ['Congress', 'Senate and House of Representatives', 'the legislature'],
+            17: ['the Senate and House of Representatives', 'the Senate', 'the House of Representatives'],
+            18: ['99', '101', '50'],
+            19: ['two', '4', '8'],
+            20: ['answers will vary'],
+            21: ['385', '500', '300'],
+            22: ['four', '6', '8'],
+            23: ['answers will vary'],
+            24: ['all citizens of their district', 'all people in their state', 'all voters'],
+            25: ['the state\'s population', 'they have more people', 'some states have more people'],
+            26: ['six', '8', '2'],
+            27: ['January', 'February', 'December'],
+            28: ['Joe Biden', 'Barack Obama', 'Bill Clinton'],
+            29: ['Kamala Harris', 'Mike Pence', 'Tim Walz'],
+            30: ['the President Pro Tempore', 'Congress', 'the Senate'],
+            31: ['the President Pro Tempore', 'Congress', 'a special election is held'],
+            32: ['Congress', 'the Secretary of Defense', 'the Joint Chiefs of Staff'],
+            33: ['Congress', 'the Vice President', 'the Senate'],
+            34: ['Congress', 'the Vice President', 'the Supreme Court'],
+            35: ['makes the laws', 'enforces the laws', 'commands the military'],
+            36: ['Secretary of the Interior', 'Attorney General', 'Secretary of State'],
+            37: ['makes federal laws', 'enforces laws', 'collects taxes'],
+            38: ['the Federal Appeals Court', 'the State Supreme Court', 'the Constitutional Court'],
+            39: ['8', '11', '10'],
+            40: ['Clarence Thomas', 'Samuel Alito', 'Sonia Sotomayor'],
+            41: ['to create an army', 'to declare war', 'to make treaties'],
+            42: ['provide education', 'provide police protection', 'give driver\'s licenses'],
+            43: ['answers will vary'],
+            44: ['answers will vary'],
+            45: ['Democratic and Republican', 'Republican and Independent', 'Democratic and Green'],
+            46: ['Democratic', 'Republican', 'Independent'],
             47: ['Kevin McCarthy', 'Nancy Pelosi', 'Mitch McConnell'],
-
-            // Q48-Q57: Rights and Responsibilities
-            48: ['only wealthy can vote', 'only men can vote', 'must own property'],
-            49: ['run for public office', 'pay taxes', 'serve military'],
-            50: ['freedom of speech', 'freedom of religion', 'right to bear arms'],
-            51: ['vote in federal elections', 'run for office', 'serve on jury'],
-            52: ['the President', 'the Constitution', 'Congress'],
-            53: ['pay taxes only', 'serve in military', 'become a senator'],
-            54: ['16', '17', '21'],
-            55: ['protest government', 'travel abroad', 'serve military'],
-            56: ['March 15', 'May 15', 'June 15'],
-            57: ['14-20', '16-25', '18-30'],
-
-            // Q58-Q70: Colonial Period and Early History
-            58: ['economic competition', 'to escape war', 'to trade'],
-            59: ['Europeans', 'Africans', 'Asian explorers'],
-            60: ['Europeans', 'Native Americans', 'Asians'],
-            61: ['independence from Spain', 'more territory', 'trade rights'],
-            62: ['Benjamin Franklin', 'George Washington', 'John Adams'],
-            63: ['July 4, 1775', 'July 4, 1787', 'December 25, 1776'],
-            64: ['Virginia, Pennsylvania, Massachusetts', 'New York, Maryland, Carolina', 'Connecticut, Delaware, Georgia'],
-            65: ['declared independence', 'created Bill of Rights', 'fought the British'],
-            66: ['1776', '1781', '1789'],
-            67: ['George Washington', 'Benjamin Franklin', 'Thomas Jefferson'],
-            68: ['invented printing press', 'was first President', 'wrote Constitution'],
-            69: ['Benjamin Franklin', 'Thomas Jefferson', 'James Madison'],
-            70: ['Thomas Jefferson', 'John Adams', 'Benjamin Franklin'],
-
-            // Q71-Q77: 1800s History
-            71: ['Florida Territory', 'Oregon Territory', 'Texas Territory'],
-            72: ['World War I', 'World War II', 'Vietnam War'],
-            73: ['Revolutionary War', 'War of 1812', 'Spanish-American War'],
-            74: ['westward expansion', 'trade disputes', 'economic competition'],
-            75: ['led Revolutionary War', 'first President', 'founded Republican Party'],
-            76: ['ended segregation', 'women\'s voting rights', 'granted statehood'],
-            77: ['led Civil War', 'was President', 'wrote Constitution'],
-
-            // Q78-Q87: 20th Century History
-            78: ['Civil War', 'War of 1812', 'Mexican-American War'],
-            79: ['Theodore Roosevelt', 'Franklin Roosevelt', 'Harry Truman'],
-            80: ['Herbert Hoover', 'Harry Truman', 'Dwight Eisenhower'],
-            81: ['France, Britain, Russia', 'Germany and Italy only', 'Japan only'],
-            82: ['World War I', 'Korean War', 'Vietnam War'],
-            83: ['Socialism', 'Democracy spreading', 'Economic growth'],
-            84: ['Women\'s Suffrage', 'Labor Movement', 'Environmental Movement'],
-            85: ['led Labor movement', 'founded NAACP', 'was a senator'],
-            86: ['Pearl Harbor attack', 'Kennedy assassination', 'Moon landing'],
-            87: ['Comanche', 'Kiowa', 'Apache'],
-
-            // Q88-Q100: Geography and Symbols
-            88: ['Colorado River', 'Rio Grande', 'Brazos River'],
+            48: ['You don\'t have to pay a poll tax', 'Any citizen can vote', 'Citizens 18 and older can vote'],
+            49: ['serve on a jury', 'vote in a federal election', 'run for federal office'],
+            50: ['vote in a federal election', 'run for federal office', 'serve on a jury'],
+            51: ['freedom of assembly', 'freedom of petition', 'the right to bear arms'],
+            52: ['the United States', 'the flag', 'our country'],
+            53: ['obey the laws', 'defend the Constitution', 'serve in the military if needed'],
+            54: ['sixteen', '21', '25'],
+            55: ['vote', 'join a political party', 'help with a campaign'],
+            56: ['May 15', 'June 15', 'March 15'],
+            57: ['at age 18', 'between 18 and 26', 'before age 18'],
+            58: ['religious freedom', 'political liberty', 'economic opportunity'],
+            59: ['Native Americans', 'American Indians', 'indigenous peoples'],
+            60: ['people from Africa', 'Africans', 'enslaved peoples'],
+            61: ['because of high taxes', 'because of British soldiers', 'because they didn\'t have self-government'],
+            62: ['Thomas Jefferson', 'John Adams', 'Benjamin Franklin'],
+            63: ['July 4, 1775', 'July 4, 1787', 'July 4, 1770'],
+            64: ['Virginia, New York, Pennsylvania', 'Massachusetts, Connecticut, New Jersey', 'Rhode Island, Delaware, Georgia'],
+            65: ['the Declaration of Independence was written', 'the Bill of Rights was created', 'independence was declared'],
+            66: ['1776', '1791', '1789'],
+            67: ['Alexander Hamilton', 'James Madison', 'John Jay'],
+            68: ['diplomat', 'oldest founder', 'started first libraries'],
+            69: ['George Washington', 'Benjamin Franklin', 'John Adams'],
+            70: ['Thomas Jefferson', 'John Adams', 'James Madison'],
+            71: ['Texas', 'Florida', 'Oregon'],
+            72: ['Mexican-American War', 'Civil War', 'War of 1812'],
+            73: ['the Spanish-American War', 'the War of 1812', 'the Mexican-American War'],
+            74: ['slavery', 'states\' rights', 'economic reasons'],
+            75: ['preserved the Union', 'freed the slaves', 'led the United States during the Civil War'],
+            76: ['freed slaves in the South', 'freed all slaves', 'freed slaves in Confederate states'],
+            77: ['fought for women\'s rights', 'fought for civil rights', 'was a suffragist'],
+            78: ['World War II', 'Korean War', 'Vietnam War'],
+            79: ['Woodrow Wilson', 'Theodore Roosevelt', 'William McKinley'],
+            80: ['Franklin D. Roosevelt', 'Herbert Hoover', 'Harry Truman'],
+            81: ['Germany and Italy', 'Japan and Germany', 'Italy and Japan'],
+            82: ['World War II', 'World War I', 'the Korean War'],
+            83: ['communism', 'socialism', 'totalitarianism'],
+            84: ['civil rights', 'women\'s rights', 'voting rights'],
+            85: ['fought for civil rights', 'worked for equality', 'led the civil rights movement'],
+            86: ['terrorists attacked', 'buildings were destroyed', 'planes hit buildings'],
+            87: ['Cherokee', 'Navajo', 'Sioux'],
+            88: ['Mississippi River', 'Missouri River', 'Colorado River'],
             89: ['Atlantic Ocean', 'Arctic Ocean', 'Indian Ocean'],
             90: ['Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'],
-            91: ['Mexico', 'Canada', 'Bahamas'],
-            92: ['Texas', 'Florida', 'California'],
-            93: ['Florida', 'Colorado', 'Utah'],
-            94: ['New York', 'Boston', 'Philadelphia'],
+            91: ['Puerto Rico', 'U.S. Virgin Islands', 'Guam'],
+            92: ['Washington', 'Montana', 'Minnesota'],
+            93: ['Texas', 'Arizona', 'California'],
+            94: ['New York City', 'Philadelphia', 'Boston'],
             95: ['Boston Harbor', 'San Francisco Bay', 'Chesapeake Bay'],
-            96: ['13 presidents', '13 signers', 'founding year'],
-            97: ['50 presidents', '50 territories', '50 major cities'],
-            98: ['America the Beautiful', 'Yankee Doodle', 'Battle Hymn'],
-            99: ['June 4', 'August 4', 'May 4'],
-
-            // Q101-Q105: Texas-Specific
-            101: ['Greg Abbott', 'Beto O\'Rourke', 'Ron Paul'],
-            102: ['Lloyd Doggett', 'Marc Veasey', 'Ronnie Jackson'],
+            96: ['because there are 50 states', 'because of 13 presidents', 'because of 13 signers'],
+            97: ['because there are 50 states', 'because of 50 presidents', 'because of 50 territories'],
+            98: ['Yankee Doodle', 'America the Beautiful', 'Battle Hymn of the Republic'],
+            99: ['January 1', 'November 1', 'December 25'],
+            100: ['New Year\'s Day', 'Thanksgiving', 'Christmas'],
+            101: ['John Carter', 'Greg Abbott', 'Dan Patrick'],
+            102: ['Lloyd Doggett', 'Ronnie Jackson', 'Kay Granger'],
             103: ['Dallas', 'Houston', 'San Antonio'],
-            104: ['1821', '1876', '1901'],
-            105: ['Colorado River', 'Brazos River', 'Colorado River'],
+            104: ['1836', '1861', '1876'],
+            105: ['Colorado River', 'Brazos River', 'Trinity River'],
         };
 
-        return curated[questionId] || null;
+        return curations[questionId] || null;
+    }
+
+    // Legacy method for compatibility (now disabled)
+    getCuratedWrongAnswers(questionId, correctAnswer) {
+        return null; // Disabled - use getCuratedWrongAnswersForQuestion instead
     }
 
     // Check if answer is correct (with flexible matching)
