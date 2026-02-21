@@ -416,6 +416,81 @@ class N400App {
             // Government roles/purposes
             42: ['protect people', 'make laws', 'enforce laws'], // State government purpose
             41: ['protect people', 'make federal laws', 'enforce laws'], // Federal government purpose
+
+            // USCIS Q8: Three branches
+            8: ['state, county, and federal', 'Congress, Senate, and House', 'President, Cabinet, and Courts'],
+
+            // USCIS Q13: Name one branch
+            13: ['the Cabinet', 'the Supreme Court', 'the Senate'],
+
+            // USCIS Q37: What judicial does
+            37: ['makes federal laws', 'enforces the laws', 'creates new amendments'],
+
+            // USCIS Q33: Who signs bills
+            33: ['Congress', 'the Senate', 'the Speaker of the House'],
+
+            // USCIS Q34: Who vetoes bills
+            34: ['Congress', 'the Senate', 'the Supreme Court'],
+
+            // USCIS Q2: What Constitution does
+            2: ['created the government', 'listed all laws', 'established the courts'],
+
+            // USCIS Q4: Amendment
+            4: ['a law from Congress', 'a Supreme Court decision', 'a presidential order'],
+
+            // USCIS Q14: Stops one branch
+            14: ['the Supreme Court only', 'Congress and President only', 'state governments'],
+
+            // USCIS Q48: Voting amendments
+            48: ['only wealthy people', 'only men can vote', 'must own property'],
+
+            // USCIS Q49: Citizen responsibility
+            49: ['run for public office', 'pay taxes', 'join the military'],
+
+            // USCIS Q62: Declaration author
+            62: ['Benjamin Franklin', 'George Washington', 'John Adams'],
+
+            // USCIS Q65: Constitutional Convention
+            65: ['fought the British', 'declared independence', 'created Bill of Rights'],
+
+            // USCIS Q72: War in 1800s
+            72: ['World War I', 'World War II', 'Vietnam War'],
+
+            // USCIS Q73: Civil War
+            73: ['Revolutionary War', 'War of 1812', 'Spanish-American War'],
+
+            // USCIS Q78: War in 1900s
+            78: ['Civil War', 'War of 1812', 'Mexican-American War'],
+
+            // USCIS Q79: President WWI
+            79: ['Theodore Roosevelt', 'Franklin Roosevelt', 'Harry Truman'],
+
+            // USCIS Q80: President WWII
+            80: ['Herbert Hoover', 'Harry Truman', 'Dwight Eisenhower'],
+
+            // USCIS Q81: WWII fighters
+            81: ['France, Britain, and Russia', 'Germany and Italy only', 'Japan only'],
+
+            // USCIS Q82: Eisenhower war
+            82: ['World War I', 'Korean War', 'Vietnam War'],
+
+            // USCIS Q89: West Coast ocean
+            89: ['Atlantic Ocean', 'Arctic Ocean', 'Indian Ocean'],
+
+            // USCIS Q90: East Coast ocean
+            90: ['Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'],
+
+            // USCIS Q91: U.S. territory
+            91: ['Mexico', 'Canada', 'Bahamas'],
+
+            // USCIS Q92: Borders Canada
+            92: ['Texas', 'Florida', 'California'],
+
+            // USCIS Q93: Borders Mexico
+            93: ['Florida', 'Colorado', 'Utah'],
+
+            // USCIS Q95: Statue of Liberty
+            95: ['Boston Harbor', 'San Francisco Bay', 'Chesapeake Bay'],
         };
 
         return curated[questionId] || null;
@@ -966,9 +1041,17 @@ class N400App {
         }, 200);
     }
 
-    // Action: Select Choice (mark as selected, don't submit yet)
+    // Action: Select Choice (mark as selected, don't submit yet) - can unselect by clicking again
     selectChoice(answer) {
         if (!answer) return;
+
+        // If clicking the same choice again, unselect it
+        if (this.selectedChoice && this.selectedChoice.toLowerCase().trim() === answer.toLowerCase().trim()) {
+            this.selectedChoice = null;
+            this.updateChoiceSelection(null);
+            return;
+        }
+
         this.selectedChoice = answer;
         // Only update the UI for selected state, don't re-render everything
         this.updateChoiceSelection(answer);
@@ -978,19 +1061,20 @@ class N400App {
     updateChoiceSelection(selectedAnswer) {
         document.querySelectorAll('.choice-button').forEach(button => {
             const choice = button.dataset.choice;
-            if (choice && choice.toLowerCase().trim() === selectedAnswer.toLowerCase().trim()) {
+            if (selectedAnswer && choice && choice.toLowerCase().trim() === selectedAnswer.toLowerCase().trim()) {
                 button.classList.add('selected');
             } else {
                 button.classList.remove('selected');
             }
         });
 
-        // Show/hide submit button
-        const submitBtn = document.querySelector('.submit-button');
-        if (!submitBtn) {
-            // Add submit button if it doesn't exist
-            const container = document.querySelector('.choices-container');
-            if (container) {
+        // Show/hide submit button based on selection
+        let submitBtn = document.querySelector('.submit-button');
+        const container = document.querySelector('.choices-container');
+
+        if (selectedAnswer && container) {
+            // Show submit button if something is selected
+            if (!submitBtn) {
                 const newBtn = document.createElement('button');
                 newBtn.className = 'submit-button';
                 newBtn.style.marginTop = '16px';
@@ -998,6 +1082,9 @@ class N400App {
                 newBtn.onclick = () => this.submitSelectedChoice();
                 container.parentNode.insertBefore(newBtn, container.nextSibling);
             }
+        } else if (!selectedAnswer && submitBtn) {
+            // Hide/remove submit button if nothing is selected
+            submitBtn.remove();
         }
     }
 
