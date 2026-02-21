@@ -74,7 +74,7 @@ const allQuestions = [
     { id: 71, text: "We elect a U.S. Representative for how long?", answers: ["two years", "2 years"], category: "American Government" },
     { id: 72, text: "Why do we have three branches of government?", answers: ["so that no one branch becomes too powerful", "checks and balances"], category: "American Government" },
     { id: 73, text: "Name one of the two longest rivers in the United States.", answers: ["Missouri River", "Mississippi River"], category: "Geography" },
-    { id: 74, text: "What is the capital of your state?", answers: ["answers vary by state"], category: "Geography" },
+    { id: 74, text: "What is the capital of Texas?", answers: ["Austin", "Austin, Texas", "Austin, TX"], category: "Geography" },
     { id: 75, text: "What is the capital of the United States?", answers: ["Washington, D.C.", "Washington DC"], category: "Geography" },
     { id: 76, text: "Why does the flag have 13 stripes?", answers: ["because there were 13 original colonies"], category: "American Symbols" },
     { id: 77, text: "Why does the flag have 50 stars?", answers: ["because there are 50 states"], category: "American Symbols" },
