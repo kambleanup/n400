@@ -630,6 +630,7 @@ class N400App {
     // Action: Toggle Choices View
     toggleChoices() {
         this.showingChoices = !this.showingChoices;
+        this.selectedChoice = null; // Reset selection when showing choices
         this.render();
         if (this.showingChoices) {
             setTimeout(() => {
