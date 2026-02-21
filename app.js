@@ -379,7 +379,7 @@ class N400App {
             6: ['freedom of speech', 'freedom of association', 'right to petition'],
             7: ['26', '28', '30'],
             8: ['proclaimed our freedom', 'established our independence', 'asserted our liberty'],
-            9: ['freedom', 'rights', 'property'],
+            9: ['equality', 'justice', 'security'], // Different concepts (not Declaration rights)
             10: ['You must practice a religion', 'Government provides religion', 'Religion is mandatory'],
             11: ['communist economy', 'socialist economy', 'command economy'],
             12: ['No one is above the law', 'Some leaders are exempt', 'The President makes the rules'],
