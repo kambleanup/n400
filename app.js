@@ -34,7 +34,8 @@ class N400App {
             const recognition = new SpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = true;
-            recognition.lang = 'en-IN'; // Indian English locale
+            // Try Indian English first, but en-US works better on iOS
+            recognition.lang = 'en-US'; // Use en-US for better iOS compatibility
             recognition.maxAlternatives = 1;
 
             recognition.onstart = () => {
@@ -45,20 +46,33 @@ class N400App {
 
             recognition.onresult = (event) => {
                 let interimTranscript = '';
+                let finalTranscript = '';
+
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
+                    const transcript = event.results[i][0].transcript.trim();
                     if (event.results[i].isFinal) {
-                        this.recognizedText = transcript;
+                        finalTranscript += transcript + ' ';
                     } else {
                         interimTranscript += transcript;
                     }
+                }
+
+                if (finalTranscript.trim()) {
+                    this.recognizedText = finalTranscript.trim();
+                    console.log('Recognized:', this.recognizedText);
                 }
                 this.render();
             };
 
             recognition.onerror = (event) => {
-                console.error('Speech recognition error', event.error);
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'no-speech') {
+                    alert('No speech detected. Please try again and speak clearly.');
+                } else if (event.error === 'network') {
+                    alert('Network error. Please try again.');
+                }
                 this.isListening = false;
+                this.recognizedText = '';
                 this.render();
             };
 
