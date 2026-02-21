@@ -491,6 +491,57 @@ class N400App {
 
             // USCIS Q95: Statue of Liberty
             95: ['Boston Harbor', 'San Francisco Bay', 'Chesapeake Bay'],
+
+            // USCIS Q71: Territory from France 1803 (currently showing people - NEEDS FIX)
+            71: ['Florida Territory', 'Oregon Territory', 'Texas Territory'],
+
+            // USCIS Q74: Civil War cause
+            74: ['westward expansion', 'trade disagreements', 'economic competition'],
+
+            // USCIS Q75: Lincoln importance
+            75: ['led the Revolutionary War', 'was the first President', 'founded the Republican Party'],
+
+            // USCIS Q76: Emancipation Proclamation
+            76: ['ended segregation', 'gave women right to vote', 'granted statehood to states'],
+
+            // USCIS Q59: Who lived in America before Europeans
+            59: ['Europeans', 'Africans', 'Asian explorers'],
+
+            // USCIS Q60: Group taken as slaves
+            60: ['Europeans', 'Native Americans', 'Asians'],
+
+            // USCIS Q61: Why colonists fought British
+            61: ['for independence from Spain', 'for more territory', 'for trade rights'],
+
+            // USCIS Q63: Declaration adoption date
+            63: ['July 4, 1787', 'September 17, 1787', 'December 25, 1776'],
+
+            // USCIS Q66: Constitution written
+            66: ['1776', 'Declaration of Independence year', 'Bill of Rights year'],
+
+            // USCIS Q69: Father of Our Country
+            69: ['Benjamin Franklin', 'Thomas Jefferson', 'James Madison'],
+
+            // USCIS Q70: First President
+            70: ['Thomas Jefferson', 'John Adams', 'Benjamin Franklin'],
+
+            // USCIS Q58: Reason colonists came
+            58: ['economic competition', 'to escape war', 'to trade with Indians'],
+
+            // USCIS Q30: If President can't serve
+            30: ['the Speaker of House', 'a new election is held', 'Congress votes'],
+
+            // USCIS Q31: If President and VP can't serve
+            31: ['a new election', 'the Attorney General', 'the Chief Justice'],
+
+            // USCIS Q32: Commander in Chief
+            32: ['the Secretary of Defense', 'Congress', 'the Joint Chiefs of Staff'],
+
+            // USCIS Q99: Independence Day date
+            99: ['June 4', 'August 4', 'September 4'],
+
+            // USCIS Q100: Two national holidays
+            100: ['Groundhog Day', 'Halloween', 'Valentine\'s Day'],
         };
 
         return curated[questionId] || null;
