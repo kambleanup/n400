@@ -586,10 +586,13 @@ class N400App {
             40: ['Samuel Alito', 'Clarence Thomas', 'Elena Kagan'],
 
             // Q41-Q47: Federal and State Powers
-            41: ['provide education', 'issue licenses', 'regulate state commerce'],
-            42: ['declare war', 'print money', 'make treaties'],
-            43: ['answers vary - provide alternative for testing'],
-            44: ['answers vary - provide alternative for testing'],
+            41: ['provide education', 'issue driver\'s licenses', 'regulate commerce between states'],
+            42: ['declare war', 'print money', 'sign treaties with countries'],
+            43: ['answers vary by state'],
+            44: ['answers vary by state'],
+            // Q89-Q90 State and Local Government Purposes (if they exist)
+            89: ['make federal laws', 'declare wars', 'print money'],
+            90: ['make federal laws', 'declare wars', 'print money'],
             45: ['Democratic and Green Party', 'Republican and Libertarian', 'Independent and Socialist'],
             46: ['Democratic', 'Independent', 'Libertarian'],
             47: ['Kevin McCarthy', 'Nancy Pelosi', 'Mitch McConnell'],
