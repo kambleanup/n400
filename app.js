@@ -421,7 +421,7 @@ class N400App {
             // Q41-47: Powers and political parties
             41: ['to create an army', 'to make treaties', 'to declare war'],
             42: ['provide education', 'issue licenses', 'protect citizens'],
-            43: ['Greg Abbott', 'Ron DeSantis', 'Gavin Newsom'], // Texas governor + other state governors
+            43: ['Rick Perry', 'Ron DeSantis', 'Gavin Newsom'], // Former TX governor + other state governors
             44: ['Austin', 'Denver', 'Sacramento'], // Texas capital + other state capitals
             45: ['Green and Libertarian', 'Independent and Socialist', 'Federalist and Whig'],
             46: ['Green', 'Libertarian', 'Socialist'],
