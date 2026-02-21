@@ -431,8 +431,9 @@ class N400App {
                         const isSelected = this.selectedChoice &&
                                          this.selectedChoice.toLowerCase().trim() === choice.toLowerCase().trim();
                         return `<button class="choice-button ${isSelected ? 'selected' : ''}"
-                                onclick="app.selectChoice('${choice.replace(/'/g, "\\'")}')">
-                            ${choice}
+                                data-choice="${this.escapeHtml(choice)}"
+                                type="button">
+                            ${this.escapeHtml(choice)}
                         </button>`;
                     }).join('')}
                 </div>
@@ -632,10 +633,18 @@ class N400App {
 
     // Action: Start Quiz
     startQuiz() {
+        // Reset all state for fresh start
         this.currentView = 'quiz';
-        this.currentQuestion = this.getNextQuestion();
+        this.currentQuestion = null; // Will be set in renderQuiz
         this.showingChoices = false;
-        this.selectedChoice = null; // Ensure no selection
+        this.selectedChoice = null;
+        this.currentChoices = null;
+        this.choicesGenerated = false;
+        this.recognizedText = '';
+        this.isListening = false;
+        window.speechSynthesis.cancel();
+        this.isSpeaking = false;
+
         this.render();
         setTimeout(() => {
             this.speak(this.currentQuestion.text);
@@ -666,18 +675,33 @@ class N400App {
     // Action: Toggle Choices View
     toggleChoices() {
         if (!this.showingChoices) {
-            // FIRST TIME: generate choices
+            // FIRST TIME: generate choices (only once per question)
             this.selectedChoice = null;
             this.currentChoices = this.generateChoices(this.currentQuestion.answers[0]);
             this.choicesGenerated = true;
         }
         this.showingChoices = !this.showingChoices;
         this.render();
+
+        // Attach event listeners AFTER render completes
         if (this.showingChoices) {
             setTimeout(() => {
+                this.attachChoiceListeners();
                 document.querySelector('.choice-button')?.focus();
-            }, 100);
+            }, 50);
         }
+    }
+
+    // Attach event listeners to choice buttons
+    attachChoiceListeners() {
+        document.querySelectorAll('.choice-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const choice = button.dataset.choice;
+                if (choice) {
+                    this.selectChoice(choice);
+                }
+            });
+        });
     }
 
     // Action: Toggle Voice Input
@@ -718,8 +742,37 @@ class N400App {
 
     // Action: Select Choice (mark as selected, don't submit yet)
     selectChoice(answer) {
+        if (!answer) return;
         this.selectedChoice = answer;
-        this.render();
+        // Only update the UI for selected state, don't re-render everything
+        this.updateChoiceSelection(answer);
+    }
+
+    // Update choice selection UI without full re-render
+    updateChoiceSelection(selectedAnswer) {
+        document.querySelectorAll('.choice-button').forEach(button => {
+            const choice = button.dataset.choice;
+            if (choice && choice.toLowerCase().trim() === selectedAnswer.toLowerCase().trim()) {
+                button.classList.add('selected');
+            } else {
+                button.classList.remove('selected');
+            }
+        });
+
+        // Show/hide submit button
+        const submitBtn = document.querySelector('.submit-button');
+        if (!submitBtn) {
+            // Add submit button if it doesn't exist
+            const container = document.querySelector('.choices-container');
+            if (container) {
+                const newBtn = document.createElement('button');
+                newBtn.className = 'submit-button';
+                newBtn.style.marginTop = '16px';
+                newBtn.textContent = 'Submit Answer';
+                newBtn.onclick = () => this.submitSelectedChoice();
+                container.parentNode.insertBefore(newBtn, container.nextSibling);
+            }
+        }
     }
 
     // Action: Submit Selected Choice
@@ -765,11 +818,18 @@ class N400App {
 
     // Action: Next Question
     nextQuestion() {
+        // Close feedback overlay
+        const overlay = document.getElementById('feedbackOverlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
+
         this.currentQuestion = this.getNextQuestion();
         this.showingChoices = false;
         this.selectedChoice = null;
         this.currentChoices = null; // Reset choices for new question
         this.choicesGenerated = false; // Reset flag so new choices are generated
+        this.recognizedText = ''; // Reset voice input
         window.speechSynthesis.cancel();
         this.isSpeaking = false;
 
