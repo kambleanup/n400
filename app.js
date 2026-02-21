@@ -359,6 +359,40 @@ class N400App {
             // Concepts/Definitions
             81: ['March 15', 'April 1', 'May 1'],    // Tax filing deadline (April 15)
             88: ['NATO', 'World Bank', 'Red Cross'], // Purpose of UN (discuss world problems)
+
+            // Constitution/Government
+            3: ['E Pluribus Unum', 'In God We Trust', 'Out of Many, One'], // First three words (We the People)
+            62: ['E Pluribus Unum', 'In God We Trust', 'Out of Many, One'], // First three words (We the People)
+
+            // Senate/House specifics
+            63: ['1', '4', '10'],       // Senators per state (2)
+            65: ['1 term', '2 terms', '3 terms'], // Senator re-election (no limit)
+            67: ['4 years', '6 years', '8 years'], // House term (2 years)
+            69: ['the state legislature', 'their congressional district', 'the governor'], // Who senator represents (all people of state)
+            70: ['their representation dates', 'the number of senators', 'the state governor'], // Why more reps (population)
+            91: ['Congress', 'the Senate', 'the Supreme Court'], // Who signs bills (President)
+
+            // Flag/Symbols
+            76: ['the original founding year', 'the 13 presidents', 'the 13 signers'], // Why 13 stripes (13 colonies)
+            77: ['the 50 presidents', 'the 50 territories', 'the 50 major cities'], // Why 50 stars (50 states)
+            78: ['America the Beautiful', 'Yankee Doodle', 'Battle Hymn of Republic'], // National anthem (Star-Spangled Banner)
+            79: ['Christmas', 'Independence Day', 'Thanksgiving Day'], // First holiday (Thanksgiving)
+
+            // Geography numbers
+            95: ['six', '8', '9'],      // How many continents (7)
+            96: ['three', '6', '7'],    // How many oceans (4/5)
+            97: ['Texas', 'California', 'Montana'], // Largest state (Alaska)
+            98: ['Delaware', 'Connecticut', 'Vermont'], // Smallest state (Rhode Island)
+
+            // Historical/Legislative
+            48: ['Gouverneur Morris', 'Benjamin Franklin', 'George Washington'], // Federalist Papers writers
+            52: ['Florida', 'Alaska', 'Puerto Rico'], // Territory bought from France (Louisiana)
+            53: ['World War I', 'World War II', 'Korean War'], // Wars in 1800s (not applicable but for structure)
+            57: ['federal power', 'executive control', 'central government'], // Anti-Federalist concern (states' rights)
+            100: ['I-131', 'Form N-600', 'Green Card Application'], // N-400 alternatives
+
+            // Recent political
+            84: ['Democratic', 'Independent', 'Libertarian'], // President's party (Republican - but show alternatives)
         };
 
         return curated[questionId] || null;
