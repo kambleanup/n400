@@ -777,10 +777,10 @@ class N400App {
                 </button>
             `;
 
-            // Attach choice listeners after rendering
+            // Attach choice listeners after rendering - use longer delay for iOS
             setTimeout(() => {
                 this.attachChoiceListeners();
-            }, 10);
+            }, 100);
         }
 
         return `
@@ -1027,7 +1027,7 @@ class N400App {
 
         this.render();
 
-        // Attach event listeners AFTER render completes
+        // Attach event listeners AFTER render completes - longer delay for iOS reliability
         if (this.showingChoices) {
             setTimeout(() => {
                 this.attachChoiceListeners();
@@ -1036,18 +1036,32 @@ class N400App {
                     btn.classList.remove('selected');
                 });
                 // Don't auto-focus first button - prevents iOS showing default selection
-            }, 50);
+            }, 150);
         }
     }
 
     // Attach event listeners to choice buttons
     attachChoiceListeners() {
-        document.querySelectorAll('.choice-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const index = parseInt(button.dataset.choiceIndex, 10);
+        const buttons = document.querySelectorAll('.choice-button');
+        console.log('DEBUG: attachChoiceListeners found ' + buttons.length + ' buttons');
+
+        buttons.forEach(button => {
+            // Remove any existing listeners by cloning (clean slate)
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+
+            // Add fresh listener
+            newButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const index = parseInt(newButton.dataset.choiceIndex, 10);
+                console.log('DEBUG: Choice clicked, index=' + index);
                 if (this.currentChoices && this.currentChoices[index]) {
                     const choice = this.currentChoices[index];
+                    console.log('DEBUG: Selecting choice: ' + choice);
                     this.selectChoice(choice);
+                } else {
+                    console.log('DEBUG: ERROR - currentChoices or index invalid');
                 }
             });
         });
