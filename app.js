@@ -468,8 +468,10 @@ class N400App {
             40: ['Clarence Thomas', 'Samuel Alito', 'Elena Kagan'],
 
             // Q41-47: Powers and political parties
-            41: ['to create an army', 'to make treaties', 'to declare war'],
-            42: ['provide education', 'issue licenses', 'protect citizens'],
+            // Q41: Federal powers - include STATE powers as wrong (test distinction)
+            41: ['to regulate commerce within state', 'to provide police protection', 'to approve zoning'],
+            // Q42: State powers - include FEDERAL powers as wrong (test distinction)
+            42: ['to declare war', 'to print money', 'to make treaties'],
             43: ['Rick Perry', 'Ron DeSantis', 'Gavin Newsom'], // Former TX governor + other state governors
             44: ['Houston', 'Denver', 'Sacramento'], // Texas largest city (not capital) + other state capitals
             45: ['Green and Libertarian', 'Independent and Socialist', 'Federalist and Whig'],
@@ -478,9 +480,12 @@ class N400App {
 
             // Q48-57: Rights, responsibilities, voting
             48: ['You don\'t have to pay a poll tax', 'Any citizen can vote', 'A male citizen can vote'],
-            49: ['vote in federal elections', 'run for federal office', 'hold elected office'],
-            50: ['run for federal office', 'vote in elections', 'serve on a jury'],
-            51: ['freedom of assembly', 'freedom of petition', 'freedom of the press'],
+            // Q49: Citizen responsibilities - include non-citizen options as wrong
+            49: ['own property', 'express your opinion', 'practice any religion'],
+            // Q50: Citizen rights - include non-citizen options as wrong
+            50: ['own property', 'practice your religion', 'get a job'],
+            // Q51: Everyone's rights - include citizen-only items as wrong
+            51: ['vote in elections', 'hold political office', 'serve on a jury'],
             52: ['the flag', 'the Constitution', 'our country'],
             53: ['obey the laws', 'defend the Constitution', 'support the President'],
             54: ['sixteen', '21', '25'],
