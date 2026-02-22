@@ -12,7 +12,7 @@ class N400App {
         this.recognizedText = '';
         this.currentChoices = null; // Store choices so they don't regenerate
         this.choicesGenerated = false; // Flag to track if choices have been generated
-        this.recentQuestions = []; // Track last 5 questions to avoid repeats
+        this.recentQuestions = []; // Track last 25 questions to avoid repeats within 25 questions
         this.speechRecognition = this.initSpeechRecognition();
 
         this.initializeProgress();
@@ -164,8 +164,8 @@ class N400App {
 
                         // Add to recent questions list
                         this.recentQuestions.push(selectedQuestion.id);
-                        // Keep only last 10 questions
-                        if (this.recentQuestions.length > 10) {
+                        // Keep only last 25 questions
+                        if (this.recentQuestions.length > 25) {
                             this.recentQuestions.shift();
                         }
 
