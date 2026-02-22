@@ -113,50 +113,72 @@ class N400App {
         // These will be set up in render methods
     }
 
-    // Get next question with weighted random selection + recent question avoidance
+    // Get next question with weighted selection + avoid repeats + category balancing
     getNextQuestion() {
-        // Calculate weights based on progress and avoid recently asked questions
-        const weights = allQuestions.map(q => {
-            // Skip questions asked in the last 5 questions (avoid repeats)
-            if (this.recentQuestions.includes(q.id)) {
-                return 0; // Don't pick recently asked questions
+        // Group questions by category
+        const categories = {};
+        allQuestions.forEach(q => {
+            if (!categories[q.category]) {
+                categories[q.category] = [];
             }
-
-            const p = this.progress[q.id];
-            if (p.asked === 0) return 3; // Never asked: 3x weight
-            const accuracy = p.correct / p.asked;
-            if (accuracy < 0.5) return 2; // <50% accuracy: 2x weight
-            return 1; // >= 50% accuracy: 1x weight
+            categories[q.category].push(q);
         });
 
-        const totalWeight = weights.reduce((a, b) => a + b, 0);
+        // Find category with fewest recent questions (ensure all categories get practiced)
+        const categoryRecency = {};
+        Object.keys(categories).forEach(cat => {
+            categoryRecency[cat] = categories[cat].filter(q =>
+                this.recentQuestions.includes(q.id)
+            ).length;
+        });
 
-        // If somehow all questions are recently asked (edge case), allow all
-        if (totalWeight === 0) {
-            this.recentQuestions = []; // Clear recent history
-            return this.getNextQuestion(); // Try again
-        }
+        // Sort categories by how many recent questions they have (ascending)
+        // Pick from the category with fewest recent questions
+        const sortedCategories = Object.keys(categoryRecency).sort((a, b) =>
+            categoryRecency[a] - categoryRecency[b]
+        );
 
-        let random = Math.random() * totalWeight;
+        // Try to find a question from the least-recently-used category
+        for (const category of sortedCategories) {
+            const candidateQuestions = categories[category].filter(q =>
+                !this.recentQuestions.includes(q.id)
+            );
 
-        for (let i = 0; i < allQuestions.length; i++) {
-            random -= weights[i];
-            if (random <= 0) {
-                const selectedQuestion = allQuestions[i];
+            if (candidateQuestions.length > 0) {
+                // Apply weighted selection within this category
+                const weights = candidateQuestions.map(q => {
+                    const p = this.progress[q.id];
+                    if (p.asked === 0) return 3; // Never asked: 3x weight
+                    const accuracy = p.correct / p.asked;
+                    if (accuracy < 0.5) return 2; // <50% accuracy: 2x weight
+                    return 1; // >= 50% accuracy: 1x weight
+                });
 
-                // Add to recent questions list
-                this.recentQuestions.push(selectedQuestion.id);
-                // Keep only last 5 questions
-                if (this.recentQuestions.length > 5) {
-                    this.recentQuestions.shift();
+                const totalWeight = weights.reduce((a, b) => a + b, 0);
+                let random = Math.random() * totalWeight;
+
+                for (let i = 0; i < candidateQuestions.length; i++) {
+                    random -= weights[i];
+                    if (random <= 0) {
+                        const selectedQuestion = candidateQuestions[i];
+
+                        // Add to recent questions list
+                        this.recentQuestions.push(selectedQuestion.id);
+                        // Keep only last 10 questions
+                        if (this.recentQuestions.length > 10) {
+                            this.recentQuestions.shift();
+                        }
+
+                        console.log('DEBUG: Selected Q' + selectedQuestion.id + ' (' + category + '), Recent: ' + this.recentQuestions.join(','));
+                        return selectedQuestion;
+                    }
                 }
-
-                console.log('DEBUG: Selected Q' + selectedQuestion.id + ', Recent: ' + this.recentQuestions.join(','));
-                return selectedQuestion;
             }
         }
 
-        return allQuestions[0];
+        // Fallback (shouldn't reach here): clear recent history and try again
+        this.recentQuestions = [];
+        return this.getNextQuestion();
     }
 
     // Classify answer type for better choice selection (more granular)
