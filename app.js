@@ -13,6 +13,8 @@ class N400App {
         this.currentChoices = null; // Store choices so they don't regenerate
         this.choicesGenerated = false; // Flag to track if choices have been generated
         this.recentQuestions = []; // Track last 25 questions to avoid repeats within 25 questions
+        this.sessionQuestions = []; // Track questions asked in current session (no duplicates in session)
+        this.sessionStartTime = Date.now(); // Track when session started
         this.speechRecognition = this.initSpeechRecognition();
 
         this.initializeProgress();
@@ -108,14 +110,104 @@ class N400App {
         localStorage.setItem('n400_progress', JSON.stringify(this.progress));
     }
 
+    // Calculate total questions asked and fair share per question
+    calculateCoverageMetrics() {
+        const totalAsked = Object.values(this.progress).reduce((sum, p) => sum + p.asked, 0);
+        const totalQuestions = allQuestions.length;
+        const fairShare = totalQuestions > 0 ? totalAsked / totalQuestions : 0;
+
+        // Find unanswered questions
+        const unanswered = allQuestions.filter(q => this.progress[q.id].asked === 0);
+
+        return {
+            totalAsked: totalAsked,
+            fairShare: fairShare,
+            unanswered: unanswered,
+            coverage: (totalQuestions - unanswered.length) + '/' + totalQuestions
+        };
+    }
+
+    // Calculate weight for a question with convergence equalization
+    calculateWeightWithConvergence(question) {
+        const p = this.progress[question.id];
+        const metrics = this.calculateCoverageMetrics();
+
+        // TIER 1: Never asked gets highest priority
+        if (p.asked === 0) {
+            return 10; // Strongest boost - MUST be covered first
+        }
+
+        // TIER 2: Weak performance (accuracy < 50%)
+        let weight = 1;
+        const accuracy = p.correct / p.asked;
+        if (accuracy < 0.5) {
+            weight = 2;
+        }
+
+        // TIER 3: Convergence equalization - boost underrepresented questions
+        // If below fair share, boost proportionally
+        const deficit = metrics.fairShare - p.asked;
+        if (deficit > 0) {
+            // For each question below fair share, apply boost factor
+            // Max boost when deficit is >= 5 (boost by 2.5x)
+            const boostFactor = 1 + Math.min(deficit / 2, 1.5);
+            weight *= boostFactor;
+        }
+
+        return weight;
+    }
+
+    // Check if session should be reset (30 minutes idle or manual reset)
+    checkSessionTimeout() {
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+        if (Date.now() - this.sessionStartTime > SESSION_TIMEOUT) {
+            this.endSession();
+        }
+    }
+
+    // End current session and clear session-level tracking
+    endSession() {
+        this.sessionQuestions = [];
+        this.sessionStartTime = Date.now();
+    }
+
     // Setup event listeners
     setupEventListeners() {
         // These will be set up in render methods
     }
 
-    // Get next question with weighted selection + avoid repeats + category balancing
+    // Get next question with SMART 3-TIER LEARNING SYSTEM
+    // Tier 1: Coverage Guarantee - force unanswered questions first
+    // Tier 2: Convergence Equalization - boost underrepresented questions
+    // Tier 3: Session Variety - no duplicates within current session
     getNextQuestion() {
-        // Group questions by category
+        // Check if session has timed out
+        this.checkSessionTimeout();
+
+        // TIER 1: COVERAGE GUARANTEE
+        // If any question has never been asked, prioritize those (excluding recent 25)
+        const metrics = this.calculateCoverageMetrics();
+        const unansweredNotRecent = metrics.unanswered.filter(q =>
+            !this.recentQuestions.includes(q.id)
+        );
+
+        if (unansweredNotRecent.length > 0) {
+            // Systematically cycle through unanswered questions
+            const selectedQuestion = unansweredNotRecent[0];
+            this.recentQuestions.push(selectedQuestion.id);
+            this.sessionQuestions.push(selectedQuestion.id);
+            if (this.recentQuestions.length > 25) {
+                this.recentQuestions.shift();
+            }
+            console.log('COVERAGE: Selected Q' + selectedQuestion.id + ' (UNANSWERED). Coverage: ' + metrics.coverage);
+            return selectedQuestion;
+        }
+
+        // TIER 2 & 3: WEIGHTED RANDOM WITH CONVERGENCE + SESSION VARIETY
+        // Build blocked list: recent 25 + current session questions
+        const blocked = new Set([...this.recentQuestions, ...this.sessionQuestions]);
+
+        // Get category balancing for variety
         const categories = {};
         allQuestions.forEach(q => {
             if (!categories[q.category]) {
@@ -124,7 +216,7 @@ class N400App {
             categories[q.category].push(q);
         });
 
-        // Find category with fewest recent questions (ensure all categories get practiced)
+        // Find category with fewest recent questions
         const categoryRecency = {};
         Object.keys(categories).forEach(cat => {
             categoryRecency[cat] = categories[cat].filter(q =>
@@ -132,8 +224,6 @@ class N400App {
             ).length;
         });
 
-        // Sort categories by how many recent questions they have (ascending)
-        // Pick from the category with fewest recent questions
         const sortedCategories = Object.keys(categoryRecency).sort((a, b) =>
             categoryRecency[a] - categoryRecency[b]
         );
@@ -141,18 +231,14 @@ class N400App {
         // Try to find a question from the least-recently-used category
         for (const category of sortedCategories) {
             const candidateQuestions = categories[category].filter(q =>
-                !this.recentQuestions.includes(q.id)
+                !blocked.has(q.id)
             );
 
             if (candidateQuestions.length > 0) {
-                // Apply weighted selection within this category
-                const weights = candidateQuestions.map(q => {
-                    const p = this.progress[q.id];
-                    if (p.asked === 0) return 3; // Never asked: 3x weight
-                    const accuracy = p.correct / p.asked;
-                    if (accuracy < 0.5) return 2; // <50% accuracy: 2x weight
-                    return 1; // >= 50% accuracy: 1x weight
-                });
+                // Apply weighted selection with convergence equalization
+                const weights = candidateQuestions.map(q =>
+                    this.calculateWeightWithConvergence(q)
+                );
 
                 const totalWeight = weights.reduce((a, b) => a + b, 0);
                 let random = Math.random() * totalWeight;
@@ -162,21 +248,31 @@ class N400App {
                     if (random <= 0) {
                         const selectedQuestion = candidateQuestions[i];
 
-                        // Add to recent questions list
                         this.recentQuestions.push(selectedQuestion.id);
-                        // Keep only last 25 questions
+                        this.sessionQuestions.push(selectedQuestion.id);
                         if (this.recentQuestions.length > 25) {
                             this.recentQuestions.shift();
                         }
 
-                        console.log('DEBUG: Selected Q' + selectedQuestion.id + ' (' + category + '), Recent: ' + this.recentQuestions.join(','));
+                        const accuracy = selectedQuestion.id in this.progress ?
+                            (this.progress[selectedQuestion.id].asked > 0 ?
+                                Math.round(100 * this.progress[selectedQuestion.id].correct / this.progress[selectedQuestion.id].asked) :
+                                0) : 0;
+                        console.log('WEIGHTED: Selected Q' + selectedQuestion.id + ' (' + category + '). Accuracy: ' + accuracy + '%, Session: ' + this.sessionQuestions.length + ' asked');
                         return selectedQuestion;
                     }
                 }
             }
         }
 
-        // Fallback (shouldn't reach here): clear recent history and try again
+        // Fallback: clear session and try again (should rarely happen)
+        if (this.sessionQuestions.length > 0) {
+            console.log('Session limit reached, clearing session questions');
+            this.endSession();
+            return this.getNextQuestion();
+        }
+
+        // Final fallback: clear recent history and retry
         this.recentQuestions = [];
         return this.getNextQuestion();
     }
@@ -885,6 +981,7 @@ class N400App {
     // View: Progress
     renderProgress() {
         const stats = this.getStats();
+        const metrics = this.calculateCoverageMetrics();
         const grouped = this.groupQuestionsByCategory();
 
         let categoriesHTML = '';
@@ -951,16 +1048,27 @@ class N400App {
                 <div class="stats-summary">
                     <div class="stat-row">
                         <div class="stat-item">
-                            <div class="stat-label">Questions Practiced</div>
-                            <div class="stat-value">${stats.totalAsked}/${allQuestions.length}</div>
+                            <div class="stat-label">Coverage (Questions Touched)</div>
+                            <div class="stat-value">${metrics.coverage}</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-label">Accuracy</div>
+                            <div class="stat-label">Overall Accuracy</div>
                             <div class="stat-value accuracy-${stats.totalAsked === 0 ? 'never' : stats.accuracy >= 0.7 ? '70' : stats.accuracy >= 0.4 ? '40' : '0'}">
                                 ${Math.round(stats.accuracy * 100)}%
                             </div>
                         </div>
                     </div>
+                    ${metrics.unanswered.length > 0 ? `
+                    <div style="margin-top: 12px; padding: 12px; background-color: var(--bg-secondary); border-radius: 8px; border-left: 4px solid var(--warning-orange);">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">Still need to practice:</div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">${metrics.unanswered.length} questions</div>
+                    </div>
+                    ` : `
+                    <div style="margin-top: 12px; padding: 12px; background-color: var(--bg-secondary); border-radius: 8px; border-left: 4px solid var(--success-green);">
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">✓ Coverage Complete!</div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--success-green);">All 105 questions have been practiced</div>
+                    </div>
+                    `}
                 </div>
 
                 <div>
@@ -1076,6 +1184,7 @@ class N400App {
         this.showingChoices = false;
         window.speechSynthesis.cancel();
         this.isSpeaking = false;
+        this.endSession(); // Clear session when returning home
         this.render();
     }
 
