@@ -12,6 +12,7 @@ class N400App {
         this.recognizedText = '';
         this.currentChoices = null; // Store choices so they don't regenerate
         this.choicesGenerated = false; // Flag to track if choices have been generated
+        this.recentQuestions = []; // Track last 5 questions to avoid repeats
         this.speechRecognition = this.initSpeechRecognition();
 
         this.initializeProgress();
@@ -112,9 +113,15 @@ class N400App {
         // These will be set up in render methods
     }
 
-    // Get next question with weighted random selection
+    // Get next question with weighted random selection + recent question avoidance
     getNextQuestion() {
+        // Calculate weights based on progress and avoid recently asked questions
         const weights = allQuestions.map(q => {
+            // Skip questions asked in the last 5 questions (avoid repeats)
+            if (this.recentQuestions.includes(q.id)) {
+                return 0; // Don't pick recently asked questions
+            }
+
             const p = this.progress[q.id];
             if (p.asked === 0) return 3; // Never asked: 3x weight
             const accuracy = p.correct / p.asked;
@@ -123,12 +130,29 @@ class N400App {
         });
 
         const totalWeight = weights.reduce((a, b) => a + b, 0);
+
+        // If somehow all questions are recently asked (edge case), allow all
+        if (totalWeight === 0) {
+            this.recentQuestions = []; // Clear recent history
+            return this.getNextQuestion(); // Try again
+        }
+
         let random = Math.random() * totalWeight;
 
         for (let i = 0; i < allQuestions.length; i++) {
             random -= weights[i];
             if (random <= 0) {
-                return allQuestions[i];
+                const selectedQuestion = allQuestions[i];
+
+                // Add to recent questions list
+                this.recentQuestions.push(selectedQuestion.id);
+                // Keep only last 5 questions
+                if (this.recentQuestions.length > 5) {
+                    this.recentQuestions.shift();
+                }
+
+                console.log('DEBUG: Selected Q' + selectedQuestion.id + ', Recent: ' + this.recentQuestions.join(','));
+                return selectedQuestion;
             }
         }
 
