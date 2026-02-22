@@ -431,11 +431,11 @@ class N400App {
             9: ['equality', 'justice', 'security'], // Different concepts (not Declaration rights)
             10: ['You must practice a religion', 'Government provides religion', 'Religion is mandatory'],
             11: ['communist economy', 'socialist economy', 'command economy'],
-            12: ['No one is above the law', 'Some leaders are exempt', 'The President makes the rules'],
+            12: ['Some leaders are exempt', 'The President makes the rules', 'Citizens can ignore laws'], // Remove "No one above law" (correct answer)
 
             // Q13-17: Government branches and structure
             13: ['the Senate', 'the House of Representatives', 'the Supreme Court'],
-            14: ['checks and balances', 'separation of powers', 'judicial review'],
+            14: ['judicial review', 'the veto power', 'the electoral college'], // Remove correct answers
             15: ['the Vice President', 'the Secretary of State', 'the Speaker of the House'],
             16: ['the Senate', 'the House of Representatives', 'the Supreme Court'],
             17: ['the Senate and House', 'Congress as a whole', 'the legislature'],
@@ -443,10 +443,10 @@ class N400App {
             // Q18-27: Numbers, times, and counts
             18: ['99', '101', '98'],
             19: ['four', 'eight', 'two'],
-            20: ['Ted Cruz', 'Dianne Feinstein', 'Chuck Schumer'], // Texas senator + other state senators
+            20: ['Dianne Feinstein', 'Chuck Schumer', 'Kamala Harris'], // Other state senators (NOT Ted Cruz)
             21: ['434', '436', '400'],
-            22: ['four', 'six', 'four'],
-            23: ['John Carter', 'Alexandria Ocasio-Cortez', 'Adam Schiff'], // Texas rep + other state reps
+            22: ['four', 'six', 'eight'], // Fixed duplicate "four"
+            23: ['Alexandria Ocasio-Cortez', 'Adam Schiff', 'Maxine Waters'], // Other reps (NOT John Carter)
             24: ['all voters in their state', 'all people of their district', 'all registered voters'],
             25: ['state history', 'geographic size', 'economic importance'],
             26: ['six', 'eight', 'two'],
@@ -461,11 +461,11 @@ class N400App {
             33: ['the Vice President', 'Congress', 'the Supreme Court'],
             34: ['the Vice President', 'Congress', 'the Senate'],
             35: ['makes the laws', 'enforces the laws', 'interprets the laws'],
-            36: ['Secretary of the Interior', 'Secretary of State', 'Attorney General'],
+            36: ['Supreme Court Justice', 'Congress Member', 'State Governor'], // Different government positions (NOT cabinet)
             37: ['makes federal laws', 'enforces the laws', 'collects taxes'],
             38: ['the Federal Appeals Court', 'the Court of Appeals', 'the District Court'],
             39: ['eight', '11', '10'],
-            40: ['Clarence Thomas', 'Samuel Alito', 'Elena Kagan'],
+            40: ['Samuel Alito', 'Clarence Thomas', 'Elena Kagan'], // Other justices (NOT current Chief)
 
             // Q41-47: Powers and political parties
             // Q41: Federal powers - include STATE powers as wrong (test distinction)
@@ -479,70 +479,70 @@ class N400App {
             47: ['Paul Ryan', 'John Boehner', 'Newt Gingrich'],
 
             // Q48-57: Rights, responsibilities, voting
-            48: ['You don\'t have to pay a poll tax', 'Any citizen can vote', 'A male citizen can vote'],
+            48: ['You must own property', 'You must be male', 'You must speak English'],
             // Q49: Citizen responsibilities - include non-citizen options as wrong
             49: ['own property', 'express your opinion', 'practice any religion'],
             // Q50: Citizen rights - include non-citizen options as wrong
             50: ['own property', 'practice your religion', 'get a job'],
             // Q51: Everyone's rights - include citizen-only items as wrong
             51: ['vote in elections', 'hold political office', 'serve on a jury'],
-            52: ['the flag', 'the Constitution', 'our country'],
+            52: ['the Constitution', 'our country', 'the President'], // NOT "the flag" (correct answer)
             53: ['obey the laws', 'defend the Constitution', 'support the President'],
             54: ['sixteen', '21', '25'],
-            55: ['vote', 'join a political party', 'volunteer for campaigns'],
+            55: ['serve in military', 'attend meetings', 'write letters'], // NOT "vote" or "political party"
             56: ['May 15', 'March 15', 'June 15'],
             57: ['before age 18', 'at age 21', 'at age 25'],
 
             // Q58-70: Colonial period and founding fathers
-            58: ['religious freedom', 'economic opportunity', 'political liberty'],
-            59: ['Native Americans', 'Africans', 'Europeans'],
-            60: ['people from Africa', 'Native Americans', 'Europeans'],
-            61: ['because of high taxes', 'because they lacked representation', 'because of British soldiers'],
+            58: ['social equality', 'military power', 'trade routes'], // NOT reasons colonists came
+            59: ['Africans', 'Europeans', 'Asians'], // NOT Native Americans
+            60: ['Native Americans', 'Europeans', 'Asians'], // NOT people from Africa
+            61: ['because they wanted more territory', 'because of French influence', 'because they lacked trade'],
             62: ['Benjamin Franklin', 'John Adams', 'James Madison'],
-            63: ['July 4, 1775', 'July 4, 1787', 'January 1, 1776'],
-            64: ['Massachusetts, Connecticut, New Hampshire', 'New York, Pennsylvania, New Jersey', 'Maryland, Delaware, Virginia'],
+            63: ['January 1, 1775', 'December 25, 1774', 'March 4, 1777'], // Different dates (NOT July 4 or 1776)
+            64: ['Ohio, Indiana, Illinois', 'Kentucky, Tennessee, Alabama', 'Florida, Missouri, Louisiana'], // NON-original states
             65: ['the Bill of Rights was written', 'the Declaration was adopted', 'the Articles were signed'],
-            66: ['1776', '1789', '1791'],
-            67: ['Alexander Hamilton', 'James Madison', 'George Washington'],
-            68: ['diplomat', 'inventor', 'Founding Father'],
+            66: ['1745', '1789', '1791'], // Changed 1776 (Constitution year, not 1776)
+            67: ['George Washington', 'Thomas Jefferson', 'Benjamin Franklin'], // Remove Hamilton & Madison (correct)
+            68: ['diplomat', 'inventor', 'military leader'], // Different roles
             69: ['Benjamin Franklin', 'Thomas Jefferson', 'John Adams'],
-            70: ['George Washington', 'James Madison', 'Benjamin Franklin'],
+            70: ['James Madison', 'Benjamin Franklin', 'Thomas Jefferson'], // NOT George Washington (correct)
 
             // Q71-82: Wars and conflicts
             71: ['Florida Territory', 'Oregon Territory', 'Alaska Territory'],
-            72: ['War of 1812', 'Mexican-American War', 'Spanish-American War'],
-            73: ['the War of 1812', 'the Revolutionary War', 'the Mexican-American War'],
-            74: ['states\' rights', 'economic competition', 'westward expansion'],
-            75: ['preserved the Union', 'defeated the Confederacy', 'abolished slavery'],
+            72: ['War of 1898', 'Korean War', 'Vietnam War'], // NOT the 1800s wars
+            73: ['World War I', 'World War II', 'Korean War'], // NOT 1800s wars
+            74: ['economic competition', 'westward expansion', 'Northern aggression'],
+            75: ['defeated the Confederacy', 'abolished slavery', 'freed Northern slaves'], // NOT preserved Union
             76: ['freed all slaves immediately', 'freed slaves in Border States', 'freed slaves in Northern states'],
-            77: ['fought for civil rights', 'advocated for education', 'led a social movement'],
-            78: ['World War II', 'the Korean War', 'the Vietnam War'],
-            79: ['Theodore Roosevelt', 'William McKinley', 'Woodrow Wilson'],
-            80: ['Herbert Hoover', 'Dwight Eisenhower', 'Harry Truman'],
+            77: ['advocated for education', 'led a social movement', 'fought for racial equality'], // NOT just "civil rights"
+            78: ['the Korean War', 'the Vietnam War', 'the Spanish-American War'], // NOT WWI or WWII
+            79: ['Theodore Roosevelt', 'William McKinley', 'Taft'], // Changed from Roosevelt/McKinley/Woodrow
+            80: ['Harry Truman', 'John F. Kennedy', 'Lyndon Johnson'], // Different presidents
             81: ['Japan and Italy', 'Germany and Japan', 'Germany and Italy'],
-            82: ['World War I', 'the Korean War', 'the Vietnam War'],
+            82: ['the Korean War', 'the Vietnam War', 'the Gulf War'], // NOT WWI or WWII
 
             // Q83-87: Modern history and movements
-            83: ['Communism', 'Socialism', 'Totalitarianism'],
-            84: ['Women\'s suffrage', 'Civil rights', 'Labor rights'],
-            85: ['led the civil rights movement', 'fought for equality', 'advocated for justice'],
+            83: ['Socialism', 'Fascism', 'Democracy'], // NOT Communism (correct answer)
+            84: ['Women\'s suffrage', 'Labor rights', 'Environmental rights'], // NOT Civil rights
+            85: ['fought for women\'s rights', 'fought for labor rights', 'advocated for integration'],
             86: ['attacked the Pentagon', 'destroyed the World Trade Center', 'hijacked planes'],
-            87: ['Navajo', 'Cherokee', 'Sioux'],
+            87: ['Pawnee', 'Osage', 'Kiowa'], // Different tribes not in acceptable list
 
             // Q88-100: Geography and symbols
-            88: ['Missouri River', 'Mississippi River', 'Colorado River'],
-            89: ['Atlantic Ocean', 'Arctic Ocean', 'Indian Ocean'],
-            90: ['Atlantic Ocean', 'Arctic Ocean', 'Southern Ocean'],
-            91: ['U.S. Virgin Islands', 'Puerto Rico', 'Guam'],
-            92: ['Montana', 'Washington', 'Minnesota'],
-            93: ['Arizona', 'New Mexico', 'California'],
-            94: ['New York', 'Philadelphia', 'Boston'],
-            95: ['Ellis Island', 'Governor\'s Island', 'Bedloe\'s Island'],
-            96: ['because there are 50 states', 'because of 13 presidents', 'because there were 13 colonies'],
-            97: ['because there are 50 states', 'because there were 50 territories', 'for the 50 presidents'],
-            98: ['Yankee Doodle', 'America the Beautiful', 'God Bless America'],
-            99: ['June 4', 'August 4', 'September 4'],
-            100: ['Thanksgiving', 'Christmas', 'New Year\'s Day'],
+            88: ['Rio Grande', 'Colorado River', 'Snake River'], // Different rivers
+            89: ['Atlantic Ocean', 'Arctic Ocean', 'Indian Ocean'], // NOT Pacific (correct)
+            90: ['Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'], // NOT Atlantic (correct)
+            91: ['Palau', 'Marshall Islands', 'Micronesia'], // Different territories (NOT Puerto Rico, Virgin Islands, Guam)
+            92: ['Wisconsin', 'Illinois', 'California'], // States that don't border Canada (NOT Maine, Vermont, NY, etc.)
+            93: ['Nevada', 'Colorado', 'Utah'], // Different Mexico-bordering states (NOT Arizona, New Mexico, CA)
+            94: ['Los Angeles', 'Chicago', 'Houston'], // Different major US cities (NOT DC)
+            95: ['Bedloes Island', 'Governors Island', 'Randall Island'],
+            96: ['because there are 13 columns', 'because of 50 states', 'because of 50 presidents'],
+            97: ['because of 50 presidents', 'because there were 50 territories', 'for 50 original colonies'],
+            98: ['America the Beautiful', 'Battle Hymn of the Republic', 'God Bless America'], // Different patriotic songs (NOT Star-Spangled Banner)
+            99: ['June 4', 'August 4', 'November 11'], // Different dates (NOT July 4)
+            100: ['Valentine\'s Day', 'Mother\'s Day', 'Easter'], // Holidays NOT in acceptable list
 
             // Q101-105: Texas specific
             101: ['Greg Abbott', 'Dan Patrick', 'John Carter'], // TX Gov + Lt. Gov + Representative (NOT senators)
