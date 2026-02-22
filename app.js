@@ -669,11 +669,19 @@ class N400App {
         // Exact match after normalization
         if (userText === expectedText) return true;
 
-        // Split into words and check if all expected words are in user answer
-        const userWords = userText.split(/\s+/).filter(w => w);
-        const expectedWords = expectedText.split(/\s+/).filter(w => w);
+        // Articles and common words to ignore in matching
+        const ignoreWords = ['the', 'a', 'an', 'and', 'or', 'is', 'of', 'in', 'by'];
 
-        // If user provided all the key words (regardless of order)
+        // Split into words, filter out articles/common words
+        const userWords = userText.split(/\s+/).filter(w => w && !ignoreWords.includes(w));
+        const expectedWords = expectedText.split(/\s+/).filter(w => w && !ignoreWords.includes(w));
+
+        // Exact match after filtering common words
+        if (userWords.join(' ') === expectedWords.join(' ')) {
+            return true;
+        }
+
+        // Check if all content words from expected are in user answer (more lenient)
         if (expectedWords.length > 0 && userWords.length > 0) {
             const matchedWords = expectedWords.filter(word =>
                 userWords.some(userWord =>
@@ -681,8 +689,23 @@ class N400App {
                 )
             );
 
-            // Accept if at least 80% of expected words are in user answer
-            if (matchedWords.length >= expectedWords.length * 0.8) {
+            // Accept if user provided all key content words (ignoring articles)
+            // Or accept if user provided at least 70% of key content words
+            const exactKeyMatch = matchedWords.length === expectedWords.length;
+            const partialMatch = matchedWords.length >= expectedWords.length * 0.7;
+
+            if (exactKeyMatch || partialMatch) {
+                console.log('DEBUG fuzzyMatch: "' + userText + '" matches "' + expectedText + '"');
+                return true;
+            }
+        }
+
+        // Allow single word matches for specific answers
+        if (userWords.length === 1 && expectedWords.length >= 1) {
+            const userWord = userWords[0];
+            const exactWordMatch = expectedWords.some(w => w === userWord);
+            if (exactWordMatch) {
+                console.log('DEBUG fuzzyMatch: "' + userText + '" single-word matches "' + expectedText + '"');
                 return true;
             }
         }
