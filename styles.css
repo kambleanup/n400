@@ -176,6 +176,10 @@ input:focus, textarea:focus {
 
 .quiz-header .back-button {
     margin-bottom: 12px;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 700;
+    display: block;
 }
 
 .quiz-meta {
