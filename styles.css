@@ -703,12 +703,6 @@ input:focus, textarea:focus {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.study-question-item:hover {
-    border-color: var(--success-green);
-    background-color: var(--bg-primary);
 }
 
 .study-q-number {
