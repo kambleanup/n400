@@ -504,7 +504,7 @@ input:focus, textarea:focus {
 .back-button {
     background: none;
     border: none;
-    color: var(--primary-color);
+    color: var(--text-primary);
     font-size: 16px;
     font-weight: 600;
     padding: 8px;
@@ -653,7 +653,7 @@ input:focus, textarea:focus {
     margin: 16px;
     background-color: var(--bg-secondary);
     border-radius: 8px;
-    border-left: 4px solid var(--primary-color);
+    border-left: 4px solid var(--success-green);
 }
 
 .study-info-icon {
@@ -683,10 +683,10 @@ input:focus, textarea:focus {
 .study-category-title {
     font-size: 18px;
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--text-primary);
     margin-bottom: 16px;
     padding-bottom: 8px;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--primary-color);
 }
 
 .study-questions-list {
@@ -706,7 +706,7 @@ input:focus, textarea:focus {
 }
 
 .study-question-item:hover {
-    border-color: var(--primary-color);
+    border-color: var(--success-green);
     background-color: var(--bg-primary);
 }
 
@@ -749,7 +749,7 @@ input:focus, textarea:focus {
 .answer-item:before {
     content: "•";
     margin-right: 6px;
-    color: var(--primary-color);
+    color: var(--text-primary);
     font-weight: bold;
 }
 
