@@ -176,10 +176,14 @@ input:focus, textarea:focus {
 
 .quiz-header .back-button {
     margin-bottom: 12px;
-    color: var(--text-primary);
-    font-size: 18px;
+    color: white;
+    font-size: 20px;
     font-weight: 700;
     display: block;
+    padding: 12px;
+    background-color: var(--primary-color);
+    border-radius: 6px;
+    width: fit-content;
 }
 
 .quiz-meta {
