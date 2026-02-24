@@ -689,86 +689,67 @@ input:focus, textarea:focus {
     border-bottom: 2px solid var(--border-color);
 }
 
-.study-questions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
+.study-questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.study-question-card {
-    padding: 16px;
+.study-question-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 6px;
     transition: all 0.2s ease;
 }
 
-.study-question-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.study-question-item:hover {
     border-color: var(--primary-color);
+    background-color: var(--bg-primary);
 }
 
-.study-question-number {
-    font-size: 12px;
+.study-q-number {
+    font-size: 14px;
     font-weight: 600;
     color: var(--primary-color);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    width: 30px;
+    text-align: right;
 }
 
-.study-question-text {
-    font-size: 15px;
-    font-weight: 600;
+.study-q-content {
+    flex: 1;
+}
+
+.study-q-text {
+    font-size: 14px;
+    font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 12px;
+    margin-bottom: 6px;
     line-height: 1.4;
 }
 
-.question-note {
-    font-size: 12px;
-    color: var(--warning-orange);
-    background-color: rgba(255, 149, 0, 0.1);
-    padding: 8px;
-    border-radius: 4px;
-    margin-bottom: 12px;
-    border-left: 3px solid var(--warning-orange);
-}
-
-.study-answers {
-    margin-top: 12px;
-}
-
-.study-answers-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-
-.answers-list {
+.study-q-answers {
     list-style: none;
     padding: 0;
     margin: 0;
+    padding-left: 16px;
 }
 
 .answer-item {
-    font-size: 14px;
-    color: var(--text-primary);
-    padding: 6px 0;
-    padding-left: 20px;
-    position: relative;
-    line-height: 1.4;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 3px 0;
+    line-height: 1.3;
 }
 
 .answer-item:before {
     content: "•";
-    position: absolute;
-    left: 6px;
-    font-weight: bold;
+    margin-right: 6px;
     color: var(--primary-color);
+    font-weight: bold;
 }
 
 .study-footer {

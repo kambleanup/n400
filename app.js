@@ -1083,34 +1083,37 @@ class N400App {
 
     // View: Study Guide
     renderStudy() {
-        const categories = {};
+        const categoryMap = {
+            'American Government': [],
+            'American History': [],
+            'Integrated Civics': []
+        };
 
-        // Group scoped questions by category
-        scopedQuestions.forEach(q => {
-            if (!categories[q.category]) {
-                categories[q.category] = [];
+        // Categorize all 100 questions
+        studyGuideQuestions.forEach(q => {
+            if (q.id <= 47) {
+                categoryMap['American Government'].push(q);
+            } else if (q.id <= 87) {
+                categoryMap['American History'].push(q);
+            } else {
+                categoryMap['Integrated Civics'].push(q);
             }
-            categories[q.category].push(q);
         });
 
-        // Generate HTML for all categories
+        // Generate HTML for all categories and questions
         let categoriesHTML = '';
-        for (const [category, questions] of Object.entries(categories)) {
+        for (const [category, questions] of Object.entries(categoryMap)) {
             const questionsHTML = questions.map(q => {
                 const answersHTML = q.answers.map(answer =>
                     `<li class="answer-item">${this.escapeHtml(answer)}</li>`
                 ).join('');
 
-                const noteHTML = q.note ? `<div class="question-note">ℹ️ ${this.escapeHtml(q.note)}</div>` : '';
-
                 return `
-                    <div class="study-question-card">
-                        <div class="study-question-number">Q${q.id}</div>
-                        <div class="study-question-text">${this.escapeHtml(q.text)}</div>
-                        ${noteHTML}
-                        <div class="study-answers">
-                            <div class="study-answers-label">Possible Answers:</div>
-                            <ul class="answers-list">
+                    <div class="study-question-item">
+                        <div class="study-q-number">${q.id}.</div>
+                        <div class="study-q-content">
+                            <div class="study-q-text">${this.escapeHtml(q.text)}</div>
+                            <ul class="study-q-answers">
                                 ${answersHTML}
                             </ul>
                         </div>
@@ -1121,7 +1124,7 @@ class N400App {
             categoriesHTML += `
                 <div class="study-category-section">
                     <h3 class="study-category-title">${category}</h3>
-                    <div class="study-questions-grid">
+                    <div class="study-questions-list">
                         ${questionsHTML}
                     </div>
                 </div>
@@ -1132,14 +1135,14 @@ class N400App {
             <div id="studyView" class="view active">
                 <div class="study-header">
                     <button class="back-button" onclick="app.showHome()">← Back</button>
-                    <h2 class="study-title">Study Guide - Scoped Questions</h2>
-                    <p class="study-subtitle">These 20 questions are for residents aged 65+ with 20+ years as permanent residents</p>
+                    <h2 class="study-title">Complete Study Guide</h2>
+                    <p class="study-subtitle">All 100 USCIS Civics Questions with Answers</p>
                 </div>
 
                 <div class="study-info-box">
                     <div class="study-info-icon">📖</div>
                     <div class="study-info-text">
-                        <strong>How to use this guide:</strong> Read through all the questions and their possible answers. Then, go to "Start Practice" to test yourself on these scoped questions.
+                        <strong>Study all 100 official USCIS civics questions and their possible answers.</strong> Use this to prepare for your naturalization test.
                     </div>
                 </div>
 
