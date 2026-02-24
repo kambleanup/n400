@@ -959,6 +959,7 @@ class N400App {
         return `
             <div id="quizView" class="view active">
                 <div class="quiz-header">
+                    <button class="back-button" onclick="app.showHome()">← Back</button>
                     <div class="quiz-meta">
                         <span>Question ${this.currentQuestion.id} of ${allQuestions.length}</span>
                         <span class="category-chip">${this.currentQuestion.category}</span>

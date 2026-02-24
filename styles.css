@@ -167,11 +167,15 @@ input:focus, textarea:focus {
 
 .quiz-header {
     background-color: var(--bg-secondary);
-    padding: 16px;
+    padding: 8px 16px 16px 16px;
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 10;
+}
+
+.quiz-header .back-button {
+    margin-bottom: 12px;
 }
 
 .quiz-meta {
