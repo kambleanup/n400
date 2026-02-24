@@ -116,8 +116,8 @@ input:focus, textarea:focus {
 
 .app-title {
     font-size: 28px;
-    font-weight: 600;
-    color: var(--primary-color);
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
 .app-subtitle {
@@ -505,10 +505,11 @@ input:focus, textarea:focus {
     background: none;
     border: none;
     color: var(--text-primary);
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 700;
     padding: 8px;
     cursor: pointer;
+    opacity: 1;
 }
 
 .stats-summary {
@@ -682,11 +683,11 @@ input:focus, textarea:focus {
 
 .study-category-title {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 16px;
     padding-bottom: 8px;
-    border-bottom: 2px solid var(--primary-color);
+    border-bottom: 3px solid var(--primary-color);
 }
 
 .study-questions-list {
