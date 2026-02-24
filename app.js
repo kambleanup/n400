@@ -865,6 +865,9 @@ class N400App {
                     <button class="btn-primary" onclick="app.startQuiz()">
                         ▶️ Start Practice
                     </button>
+                    <button class="btn-secondary" onclick="app.showStudyGuide()">
+                        📖 Study Guide
+                    </button>
                     <button class="btn-secondary" onclick="app.showProgress()">
                         📊 My Progress
                     </button>
@@ -1078,6 +1081,81 @@ class N400App {
         `;
     }
 
+    // View: Study Guide
+    renderStudy() {
+        const categories = {};
+
+        // Group scoped questions by category
+        scopedQuestions.forEach(q => {
+            if (!categories[q.category]) {
+                categories[q.category] = [];
+            }
+            categories[q.category].push(q);
+        });
+
+        // Generate HTML for all categories
+        let categoriesHTML = '';
+        for (const [category, questions] of Object.entries(categories)) {
+            const questionsHTML = questions.map(q => {
+                const answersHTML = q.answers.map(answer =>
+                    `<li class="answer-item">${this.escapeHtml(answer)}</li>`
+                ).join('');
+
+                const noteHTML = q.note ? `<div class="question-note">ℹ️ ${this.escapeHtml(q.note)}</div>` : '';
+
+                return `
+                    <div class="study-question-card">
+                        <div class="study-question-number">Q${q.id}</div>
+                        <div class="study-question-text">${this.escapeHtml(q.text)}</div>
+                        ${noteHTML}
+                        <div class="study-answers">
+                            <div class="study-answers-label">Possible Answers:</div>
+                            <ul class="answers-list">
+                                ${answersHTML}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            categoriesHTML += `
+                <div class="study-category-section">
+                    <h3 class="study-category-title">${category}</h3>
+                    <div class="study-questions-grid">
+                        ${questionsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div id="studyView" class="view active">
+                <div class="study-header">
+                    <button class="back-button" onclick="app.showHome()">← Back</button>
+                    <h2 class="study-title">Study Guide - Scoped Questions</h2>
+                    <p class="study-subtitle">These 20 questions are for residents aged 65+ with 20+ years as permanent residents</p>
+                </div>
+
+                <div class="study-info-box">
+                    <div class="study-info-icon">📖</div>
+                    <div class="study-info-text">
+                        <strong>How to use this guide:</strong> Read through all the questions and their possible answers. Then, go to "Start Practice" to test yourself on these scoped questions.
+                    </div>
+                </div>
+
+                <div class="study-content">
+                    ${categoriesHTML}
+                </div>
+
+                <div class="study-footer">
+                    <button class="btn-primary" onclick="app.startQuiz()" style="width: 100%; margin: 20px 0;">
+                        ▶️ Ready to Practice?
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
     // Group questions by category
     groupQuestionsByCategory() {
         const grouped = {};
@@ -1175,6 +1253,14 @@ class N400App {
     // Action: Show Progress
     showProgress() {
         this.currentView = 'progress';
+        this.render();
+    }
+
+    // Action: Show Study Guide
+    showStudyGuide() {
+        this.currentView = 'study';
+        window.speechSynthesis.cancel();
+        this.isSpeaking = false;
         this.render();
     }
 
@@ -1388,6 +1474,8 @@ class N400App {
             html = this.renderQuiz();
         } else if (this.currentView === 'progress') {
             html = this.renderProgress();
+        } else if (this.currentView === 'study') {
+            html = this.renderStudy();
         }
 
         app.innerHTML = html;
