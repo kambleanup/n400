@@ -150,10 +150,12 @@ input:focus, textarea:focus {
     font-weight: 600;
     padding: 14px 16px;
     font-size: 16px;
+    border: 2px solid var(--primary-color);
 }
 
 .btn-secondary:hover {
-    background-color: var(--border-color);
+    background-color: var(--primary-color);
+    color: white;
 }
 
 /* Quiz View */
